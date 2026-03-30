@@ -1,5 +1,5 @@
 /**
- * Intelligent Variable FIRE - UI App Module (v6.0 MD3 & Smart KR-FIRE)
+ * Intelligent Variable FIRE - UI App Module (v7.0 Wealth)
  */
 
 let assetChartInst = null;
@@ -33,6 +33,38 @@ function triggerSimulationThrottled() {
     });
 }
 
+/**
+ * SPA Page Navigation Logic
+ */
+function initNavigation() {
+    const btnRun = document.getElementById('btnRunSimulation');
+    const btnBack = document.getElementById('btnBackToInputs');
+    const pageInputs = document.getElementById('page-inputs');
+    const pageResults = document.getElementById('page-results');
+
+    if (btnRun) {
+        btnRun.addEventListener('click', () => {
+            // Switch Page
+            pageInputs.classList.remove('active');
+            pageResults.classList.add('active');
+            
+            // Trigger Calc & Render
+            triggerSimulation();
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+    if (btnBack) {
+        btnBack.addEventListener('click', () => {
+            pageResults.classList.remove('active');
+            pageInputs.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+}
+
 function bindResponsiveInputs() {
     IDS.forEach(id => {
         const rangeEl = document.getElementById(id);
@@ -41,62 +73,38 @@ function bindResponsiveInputs() {
             // Two-way binding
             rangeEl.addEventListener('input', (e) => {
                 numEl.value = e.target.value;
-                triggerSimulationThrottled();
+                // We don't trigger simulation on every slide in Page 1 to save resources,
+                // results are shown on Page 2 via 'Run' button.
             });
             numEl.addEventListener('input', (e) => {
                 rangeEl.value = e.target.value;
-                triggerSimulationThrottled();
             });
         }
     });
 
+    // Option toggles
     const reinvestDiv = document.getElementById('reinvestDiv');
     const stressTest = document.getElementById('stressTest');
-    if (reinvestDiv) reinvestDiv.addEventListener('change', triggerSimulationThrottled);
-    if (stressTest) stressTest.addEventListener('change', triggerSimulationThrottled);
+    
+    // We can still allow background updates if Page 2 is active
+    const checkAndUpdate = () => {
+        if (document.getElementById('page-results').classList.contains('active')) {
+            triggerSimulationThrottled();
+        }
+    };
+
+    if (reinvestDiv) reinvestDiv.addEventListener('change', checkAndUpdate);
+    if (stressTest) stressTest.addEventListener('change', checkAndUpdate);
 
     document.querySelectorAll('input[name="accountType"]').forEach(r => {
-        r.addEventListener('change', triggerSimulationThrottled);
-    });
-}
-
-document.getElementById('addEventBtn')?.addEventListener('click', () => {
-    const age = parseInt(document.getElementById('eventAge').value);
-    const amt = parseInt(document.getElementById('eventAmount').value);
-    if (!age || !amt) return;
-    lifeEvents.push({ age, amount: amt });
-    lifeEvents.sort((a,b) => a.age - b.age);
-    renderEventList();
-    triggerSimulationThrottled();
-});
-
-function removeEvent(idx) {
-    lifeEvents.splice(idx, 1);
-    renderEventList();
-    triggerSimulationThrottled();
-}
-
-function renderEventList() {
-    const ul = document.getElementById('eventList');
-    if(!ul) return;
-    ul.innerHTML = '';
-    lifeEvents.forEach((e, idx) => {
-        const li = document.createElement('li');
-        li.className = 'event-item';
-        let cls = e.amount > 0 ? 'text-success' : 'text-error';
-        let sign = e.amount > 0 ? '+' : '';
-        li.innerHTML = `
-            <span>${e.age}세</span>
-            <span class="${cls}" style="font-weight:600;">${sign}${formatKrw(e.amount)}만 원</span>
-            <button class="event-del material-symbols-outlined" onclick="removeEvent(${idx})">close</button>
-        `;
-        ul.appendChild(li);
+        r.addEventListener('change', checkAndUpdate);
     });
 }
 
 function initThemeToggle() {
     const sw = document.getElementById('themeSwitch');
     const icon = document.getElementById('themeIcon');
+    
     const applyTheme = (isDark) => {
         if(isDark) {
             document.body.classList.remove('light-theme');
@@ -109,20 +117,36 @@ function initThemeToggle() {
             icon.innerText = 'light_mode';
             currentTheme = 'light';
         }
-        triggerSimulationThrottled();
+        // Force chart update only if result page is active
+        if (document.getElementById('page-results').classList.contains('active')) {
+            triggerSimulationThrottled();
+        }
     };
     
-    // Auto detect OS preference
-    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    sw.checked = prefersDark;
-    applyTheme(prefersDark);
+    // Check local storage or OS preference
+    const savedTheme = localStorage.getItem('fire-theme');
+    let isDarkInitial = false;
     
-    sw.addEventListener('change', (e) => applyTheme(e.target.checked));
+    if (savedTheme) {
+        isDarkInitial = savedTheme === 'dark';
+    } else {
+        isDarkInitial = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    
+    sw.checked = isDarkInitial;
+    applyTheme(isDarkInitial);
+    
+    sw.addEventListener('change', (e) => {
+        const isDark = e.target.checked;
+        applyTheme(isDark);
+        localStorage.setItem('fire-theme', isDark ? 'dark' : 'light');
+    });
 }
 
 function init() {
     bindResponsiveInputs();
     initThemeToggle();
+    initNavigation();
 }
 
 function getBaseInputs() {
@@ -173,9 +197,6 @@ function triggerSimulation() {
     let inputsDivReinvest = getBaseInputs(); inputsDivReinvest.reinvestDiv = true;
     let resDivRe = runSimulation(inputsDivReinvest);
 
-    let inputsGeneralAcc = getBaseInputs(); inputsGeneralAcc.accountType = 'general'; inputsGeneralAcc.reinvestDiv = true;
-    let resTaxGeneral = runSimulation(inputsGeneralAcc);
-    
     updateMetrics(userResult, Object.assign({}, baseInputs));
     updateBigMacIndex(baseInputs.inflationRate, baseInputs.age, baseInputs.targetAge);
     
@@ -229,11 +250,11 @@ function updateMetrics(baseRes, inputs) {
         let gap = baseRes.assetAtTargetAge - baseRes.requiredAssetAtTargetAge;
         if (gap >= 0) {
             elGap.innerText = "+" + formatKrw(Math.round(gap)) + "만 원";
-            elGap.className = "metric-value text-success";
+            elGap.className = "metric-value text-success font-hero";
             elGapLabel.innerText = `${inputs.targetAge}세 자금 확보 완료`;
         } else {
             elGap.innerText = formatKrw(Math.round(gap)) + "만 원";
-            elGap.className = "metric-value text-error";
+            elGap.className = "metric-value text-error font-hero";
             elGapLabel.innerText = `목표 도달을 위해 부족한 금액`;
         }
     }
@@ -248,7 +269,7 @@ function updateBigMacIndex(inflationRate, currentAge, targetAge) {
     elMacFuture.innerText = formatKrw(Math.round(futurePrice));
 }
 
-// Chart 1 & 2: Assets & Income (With MD3 Colors)
+// Chart 1 & 2: Assets & Income
 function renderMainCharts(history, stressHistory, fireAge, targetAge) {
     if(!history || history.length === 0) return;
     
@@ -264,15 +285,15 @@ function renderMainCharts(history, stressHistory, fireAge, targetAge) {
     
     if (targetAge) {
         annotations.xaxis.push({
-            x: targetAge + '세', strokeDashArray: 5, borderColor: '#1A73E8',
-            label: { borderColor: '#1A73E8', style: { color: '#fff', background: '#1A73E8' }, text: '희망 은퇴' }
+            x: targetAge + '세', strokeDashArray: 5, borderColor: '#1d4ed8',
+            label: { borderColor: '#1d4ed8', style: { color: '#fff', background: '#1d4ed8' }, text: '희망 은퇴' }
         });
     }
 
     if(fireAge) {
         annotations.xaxis.push({
-            x: fireAge + '세', strokeDashArray: 0, borderColor: '#188038',
-            label: { borderColor: '#188038', style: { color: '#fff', background: '#188038' }, text: '목표 달성 지점' }
+            x: fireAge + '세', strokeDashArray: 0, borderColor: '#10b981',
+            label: { borderColor: '#10b981', style: { color: '#fff', background: '#10b981' }, text: '목표 달성 지점' }
         });
     }
 
@@ -280,19 +301,19 @@ function renderMainCharts(history, stressHistory, fireAge, targetAge) {
         { name: "부동산", data: realData }, { name: "주식/펀드", data: stockData }, 
         { name: "현금", data: cashData }, { name: "안전마진 목표선", type: 'line', data: targetData }
     ];
-    let colors = ['#F29900', '#1A73E8', '#9AA0A6', '#188038'];
-    if(currentTheme === 'dark') { colors[0] = '#FCD663'; colors[1] = '#8AB4F8'; colors[2] = '#5F6368'; colors[3] = '#81C995'; }
+    let colors = ['#f59e0b', '#1d4ed8', '#64748b', '#10b981'];
+    if(currentTheme === 'dark') { colors[0] = '#fbbf24'; colors[1] = '#3b82f6'; colors[2] = '#94a3b8'; colors[3] = '#34d399'; }
 
-    let strokeConf = { width: [2, 2, 2, 3], curve: 'smooth', dashArray: [0,0,0,4] };
+    let strokeConf = { width: [2, 2, 2, 4], curve: 'smooth', dashArray: [0,0,0,8] };
     
     if(stressHistory) {
         let stressData = stressHistory.map(h => h.total);
         assetSeries.push({ name: "스트레스 위기자산", type: 'line', data: stressData });
-        colors.push(currentTheme === 'dark' ? '#F28B82' : '#D93025'); strokeConf.width.push(2); strokeConf.dashArray.push(5);
+        colors.push(currentTheme === 'dark' ? '#fca5a5' : '#ef4444'); strokeConf.width.push(2); strokeConf.dashArray.push(5);
     }
 
     let cTheme = currentTheme;
-    let fontF = 'Google Sans, Roboto, sans-serif';
+    let fontF = 'Noto Sans KR, Roboto, sans-serif';
 
     if(assetChartInst) {
         assetChartInst.updateOptions({ theme: { mode: cTheme }, annotations, stroke: strokeConf, colors });
@@ -300,26 +321,26 @@ function renderMainCharts(history, stressHistory, fireAge, targetAge) {
     } else {
         assetChartInst = new ApexCharts(document.querySelector("#assetChart"), {
             series: assetSeries, theme: { mode: cTheme },
-            chart: { background: 'transparent', type: 'area', height: 420, stacked: false, fontFamily: fontF, toolbar: { show: false }, animations: { enabled: false } },
+            chart: { background: 'transparent', type: 'area', height: 420, stacked: false, fontFamily: fontF, toolbar: { show: false }, animations: { enabled: true } },
             stroke: strokeConf, colors: colors,
-            fill: { type: ['gradient','gradient','gradient','solid','solid'], opacity: [0.3, 0.4, 0.6, 1, 1] },
+            fill: { type: ['gradient','gradient','gradient','solid','solid'], opacity: [0.2, 0.3, 0.4, 1, 1] },
             xaxis: { categories: xCategories, tickAmount: 10 }, yaxis: { labels: { formatter: formatKrwSmall } },
-            dataLabels: { enabled: false }, legend: { position: 'top' }, annotations: annotations
+            dataLabels: { enabled: false }, legend: { position: 'top', fontWeight: 600 }, annotations: annotations
         });
         assetChartInst.render();
     }
 
-    let incomeColors = currentTheme === 'dark' ? ['#8AB4F8', '#F28B82'] : ['#1A73E8', '#D93025'];
+    let incomeColors = currentTheme === 'dark' ? ['#3b82f6', '#fca5a5'] : ['#1d4ed8', '#ef4444'];
     if(incomeChartInst) {
         incomeChartInst.updateOptions({ theme: { mode: cTheme }, colors: incomeColors });
         incomeChartInst.updateSeries([ { name: "근로 월 소득", data: incomeData }, { name: "필수 월 지출 (건보료 포함)", data: expenseData } ]);
     } else {
         incomeChartInst = new ApexCharts(document.querySelector("#incomeChart"), {
             series: [{ name: "근로 월 소득", data: incomeData }, { name: "필수 월 지출 (건보료 포함)", data: expenseData }],
-            theme: { mode: cTheme }, chart: { background: 'transparent', type: 'line', height: 320, fontFamily: fontF, toolbar: { show: false }, animations: { enabled: false } },
-            colors: incomeColors, stroke: { width: 3, curve: 'smooth', dashArray: [0, 5] },
+            theme: { mode: cTheme }, chart: { background: 'transparent', type: 'line', height: 320, fontFamily: fontF, toolbar: { show: false }, animations: { enabled: true } },
+            colors: incomeColors, stroke: { width: 4, curve: 'smooth', dashArray: [0, 8] },
             xaxis: { categories: xCategories, tickAmount: 10 }, yaxis: { labels: { formatter: formatKrwSmall } },
-            dataLabels: { enabled: false }, legend: { position: 'top' }
+            dataLabels: { enabled: false }, legend: { position: 'top', fontWeight: 600 }
         });
         incomeChartInst.render();
     }
@@ -335,7 +356,7 @@ function renderAccelChart(hNoDiv, hNoRe, hRe) {
         { name: "2. 배당금을 단순 소비하는 경우", data: hNoRe.map(h => h.total) },
         { name: "3. 배당금 전액 무한 스노우볼 재투자", data: hRe.map(h => h.total) }
     ];
-    let colors = currentTheme === 'dark' ? ['#5F6368', '#F28B82', '#8AB4F8'] : ['#9AA0A6', '#D93025', '#1A73E8'];
+    let colors = currentTheme === 'dark' ? ['#94a3b8', '#fca5a5', '#3b82f6'] : ['#64748b', '#ef4444', '#1d4ed8'];
 
     if(accelChartInst) {
         accelChartInst.updateOptions({ theme: { mode: currentTheme }, colors });
@@ -343,15 +364,14 @@ function renderAccelChart(hNoDiv, hNoRe, hRe) {
     } else {
         accelChartInst = new ApexCharts(document.querySelector("#accelChart"), {
             series: series, theme: { mode: currentTheme },
-            chart: { type: 'line', height: 350, fontFamily: 'Google Sans', toolbar: { show: false }, background: 'transparent', animations: { enabled: false } },
-            colors: colors, stroke: { width: [3, 3, 4], curve: 'smooth' },
+            chart: { type: 'line', height: 350, fontFamily: 'Noto Sans KR', toolbar: { show: false }, background: 'transparent', animations: { enabled: true } },
+            colors: colors, stroke: { width: [3, 3, 5], curve: 'smooth' },
             xaxis: { categories: xCategories, tickAmount: 10 },
             yaxis: { labels: { formatter: formatKrwSmall } },
-            dataLabels: { enabled: false }, legend: { position: 'top' }
+            dataLabels: { enabled: false }, legend: { position: 'top', fontWeight: 600 }
         });
         accelChartInst.render();
     }
 }
-
 
 document.addEventListener('DOMContentLoaded', init);
