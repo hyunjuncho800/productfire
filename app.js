@@ -49,6 +49,11 @@ function initNavigation() {
     const btnBack = document.getElementById('btnBackToInputs');
     const pageInputs = document.getElementById('page-inputs');
     const pageResults = document.getElementById('page-results');
+    const btnShare = document.getElementById('btnShareImage');
+
+    if (btnShare) {
+        btnShare.addEventListener('click', shareReportAsImage);
+    }
 
     if (btnRun && pageInputs && pageResults) {
         btnRun.addEventListener('click', () => {
@@ -379,5 +384,75 @@ function renderAccelChart(hNoDiv, hNoRe, hRe) {
         accelChartInst.render();
     }
 }
+
+
+/**
+ * Capture Premium Share Card and Share via Web Share API or Download
+ */
+async function shareReportAsImage() {
+    const card = document.getElementById('premiumShareCard');
+    const btn = document.getElementById('btnShareImage');
+    const ageEl = document.getElementById('resAge');
+    const gapEl = document.getElementById('resGapAmount');
+    
+    if (!card || !btn) return;
+    
+    // Update Share Card Data before capture
+    const shareAge = document.getElementById('shareAge');
+    const shareGapText = document.getElementById('shareGapText');
+    
+    if (shareAge && ageEl) shareAge.innerText = ageEl.innerText;
+    if (shareGapText && gapEl) {
+        shareGapText.innerText = gapEl.innerText;
+        // Apply success/error theme based on visibility
+        if (gapEl.classList.contains('text-success')) {
+            shareGapText.className = 'share-gap gap-success';
+        } else {
+            shareGapText.className = 'share-gap gap-error';
+        }
+    }
+    
+    // UI Feedback
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined spinning">sync</span> 생성 중...';
+
+    try {
+        // Render hidden card to canvas
+        const canvas = await html2canvas(card, {
+            scale: 2, // High resolution
+            backgroundColor: null,
+            logging: false,
+            useCORS: true
+        });
+        
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        const file = new File([blob], 'smart-fire-report.png', { type: 'image/png' });
+
+        // Check if Web Share API for files is supported
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+                files: [file],
+                title: 'Smart KR-FIRE 은퇴 리포트',
+                text: '나의 조기 은퇴 시나리오를 확인해보세요!'
+            });
+        } else {
+            // Fallback for Desktop: Download
+            const dataUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = `Smart-FIRE-Report-${new Date().getTime()}.png`;
+            link.click();
+            alert('공유 기능을 지원하지 않는 환경입니다. 이미지를 다운로드합니다.');
+        }
+    } catch (err) {
+        console.error("Capture or Share failed:", err);
+        alert('이미지 생성 중 오류가 발생했습니다.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    }
+}
+
 
 document.addEventListener('DOMContentLoaded', init);
