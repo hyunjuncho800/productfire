@@ -168,7 +168,6 @@ function getSafeValue(id, def) {
 }
 
 function getBaseInputs() {
-    const accTypeEl = document.querySelector('input[name="accountType"]:checked');
     return {
         age: getSafeValue('age', 30),
         targetAge: getSafeValue('targetAge', 45),
@@ -186,7 +185,7 @@ function getBaseInputs() {
         divStock: getSafeValue('divStock', 2000),
         divYield: getSafeValue('divYield', 3.5),
         divGrowth: getSafeValue('divGrowth', 2.0),
-        accountType: accTypeEl ? accTypeEl.value : 'general',
+        accountType: 'general',
         reinvestDiv: document.getElementById('reinvestDiv') ? document.getElementById('reinvestDiv').checked : true,
         
         peakAge: getSafeValue('peakAge', 50),
