@@ -120,7 +120,7 @@
                     </div>
                     <div class="form-group">
                         <div class="form-header">
-                            <label>주식 / 펀드 (만 원)</label>
+                            <label>주식 / 펀드 (배당 제외, 만 원)</label>
                             <div class="form-input-box"><input type="number" id="stock_num" min="0" max="200000" value="5000"></div>
                         </div>
                         <input type="range" id="stock" min="0" max="200000" step="100" value="5000">
@@ -138,6 +138,15 @@
                     <h2><span class="material-symbols-outlined text-primary">savings</span> 배당 및 한국형 절세 / 건보료 폭탄 룰셋</h2>
                     <p class="guide-text">은퇴 후 지역가입자 건강보험료(연 1,000만 초과 시 8%)와 금융소득종합과세(연 2,000만 초과 시 최대 26.4%) 폭탄을 피하는 절세 계좌의 힘을 설정합니다.</p>
                     
+                    <div class="form-group">
+                        <div class="form-header">
+                            <label>배당 주식 자산 (만 원)</label>
+                            <div class="form-input-box"><input type="number" id="divStock_num" min="0" max="200000" value="2000"></div>
+                        </div>
+                        <input type="range" id="divStock" min="0" max="200000" step="100" value="2000">
+                        <span class="guide-text">배당금이 발생하는 전용 자산 규모를 설정합니다.</span>
+                    </div>
+
                     <div class="form-group">
                         <div class="form-header">
                             <label>투자 자산의 연 배당수익률 (%)</label>

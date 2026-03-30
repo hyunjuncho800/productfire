@@ -24,7 +24,7 @@ let currentTheme = 'light';
 
 const IDS = [
     'age', 'targetAge', 'salary', 'inflationRate', 
-    'cash', 'stock', 'realestate', 'expense',
+    'cash', 'stock', 'divStock', 'realestate', 'expense',
     'stockReturn', 'stockRatio', 'realestateReturn',
     'divYield', 'divGrowth', 'peakAge', 'incomeDecayRate'
 ];
@@ -183,6 +183,7 @@ function getBaseInputs() {
         stockRatio: getSafeValue('stockRatio', 80),
         lifeEvents: [...lifeEvents],
         
+        divStock: getSafeValue('divStock', 2000),
         divYield: getSafeValue('divYield', 3.5),
         divGrowth: getSafeValue('divGrowth', 2.0),
         accountType: accTypeEl ? accTypeEl.value : 'general',
@@ -308,7 +309,8 @@ function renderMainCharts(history, stressHistory, fireAge, targetAge) {
     const xCategories = history.map(h => h.age + '세');
     const assetSeries = [
         { name: "부동산", data: history.map(h => h.realestate) },
-        { name: "주식/펀드", data: history.map(h => h.stock) },
+        { name: "일반 주식", data: history.map(h => h.stock) },
+        { name: "배당 주식", data: history.map(h => h.divStock || 0) },
         { name: "현금", data: history.map(h => h.cash) },
         { name: "안전마진 목표선", type: 'line', data: history.map(h => h.target) }
     ];
@@ -317,7 +319,7 @@ function renderMainCharts(history, stressHistory, fireAge, targetAge) {
     if (targetAge) annotations.xaxis.push({ x: targetAge + '세', strokeDashArray: 5, borderColor: '#1d4ed8', label: { style: { color: '#fff', background: '#1d4ed8' }, text: '희망 은퇴' } });
     if (fireAge) annotations.xaxis.push({ x: fireAge + '세', strokeDashArray: 0, borderColor: '#10b981', label: { style: { color: '#fff', background: '#10b981' }, text: '목표 달성' } });
 
-    let colors = currentTheme === 'dark' ? ['#fbbf24', '#3b82f6', '#94a3b8', '#34d399'] : ['#f59e0b', '#1d4ed8', '#64748b', '#10b981'];
+    let colors = currentTheme === 'dark' ? ['#fbbf24', '#3b82f6', '#10b981', '#94a3b8', '#a78bfa'] : ['#f59e0b', '#1d4ed8', '#10b981', '#64748b', '#7c3aed'];
     if (stressHistory) {
         assetSeries.push({ name: "위기 자산", type: 'line', data: stressHistory.map(h => h.total) });
         colors.push(currentTheme === 'dark' ? '#fca5a5' : '#ef4444');
@@ -333,7 +335,7 @@ function renderMainCharts(history, stressHistory, fireAge, targetAge) {
         assetChartInst = new ApexCharts(chartEl, {
             series: assetSeries, theme: { mode: currentTheme },
             chart: { background: 'transparent', type: 'area', width: '100%', height: 420, fontFamily: 'Noto Sans KR', toolbar: { show: false } },
-            colors: colors, stroke: { width: [2, 2, 2, 4, 2], curve: 'smooth', dashArray: [0, 0, 0, 8, 5] },
+            colors: colors, stroke: { width: [2, 2, 2, 2, 4, 2], curve: 'smooth', dashArray: [0, 0, 0, 0, 8, 5] },
             xaxis: { categories: xCategories, tickAmount: 10 }, yaxis: { labels: { formatter: formatKrwSmall } },
             tooltip: { y: { formatter: formatKrwSmall } },
             legend: { position: 'top', fontWeight: 600 },
