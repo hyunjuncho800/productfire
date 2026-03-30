@@ -3,24 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>지능형 가변 파이어 시뮬레이터</title>
+    <title>파이어족 계산기</title>
     <!-- Google Fonts & Material Symbols -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="dark-theme">
     <header class="app-header">
         <div class="logo-wrapper">
-            <span class="material-symbols-outlined logo-icon">query_stats</span>
-            <h1>Intelligent Variable FIRE</h1>
+            <span class="material-symbols-outlined logo-icon cyan-neon">bolt</span>
+            <h1 class="cyan-neon-text">파이어족 계산기 <span style="font-size:12px;opacity:0.6;">v4.0 Cyber</span></h1>
         </div>
-        <div class="stress-test-toggle">
+        <div class="header-controls">
+            <!-- Theme Toggle -->
+            <label class="switch-label theme-toggle" for="themeSwitch">
+                <span class="material-symbols-outlined" id="themeIcon">dark_mode</span>
+                <div class="switch">
+                    <input type="checkbox" id="themeSwitch" checked>
+                    <span class="slider round"></span>
+                </div>
+            </label>
+
+            <!-- Stress Test Toggle -->
             <label class="switch-label" for="stressTest">
-                <span>은퇴 직후 하락장 가정 (-10% 수익)</span>
+                <span class="magenta-neon-text">초기 하락장(-10%) 스트레스 테스트</span>
                 <div class="switch">
                     <input type="checkbox" id="stressTest">
-                    <span class="slider round"></span>
+                    <span class="slider round magenta-slider"></span>
                 </div>
             </label>
         </div>
@@ -29,108 +39,128 @@
     <main class="dashboard">
         <!-- Top Metrics Row -->
         <section class="metrics-panel">
-            <div class="metric-card primary">
-                <span class="metric-title">예상 은퇴 나이</span>
+            <div class="metric-card primary-neon">
+                <span class="metric-title">예상 순수 파이어 도달 나이</span>
                 <div class="metric-value" id="resAge">- 세</div>
                 <div class="metric-sub" id="resAgeDelay">계산 중...</div>
             </div>
-            <div class="metric-card success">
-                <span class="metric-title">필요 목표 자산 (4% 룰)</span>
-                <div class="metric-value" id="resTargetAsset">- 억 원</div>
-                <div class="metric-sub">월 목표 생활비 25배 기준</div>
+            <div class="metric-card bg-cyber">
+                <span class="metric-title">희망 은퇴 나이 도달 시: 목표 필요 자금</span>
+                <div class="metric-value magenta-text" id="resTargetGapAsset">- 억 원</div>
+                <div class="metric-sub">희망 은퇴 나이 기준 목표 생활비의 25배</div>
             </div>
-            <div class="metric-card standard">
-                <span class="metric-title">현재 달성률</span>
-                <div class="metric-value" id="resProgress">- %</div>
-                <div class="metric-sub">목표 자산 대비 현재 보유 자산</div>
+            <div class="metric-card bg-cyber-dark">
+                <span class="metric-title">희망 은퇴 시점 시뮬레이션 격차(GAP)</span>
+                <div class="metric-value" id="resGapAmount">- 만 원</div>
+                <div class="metric-sub" id="resGapLabel">목표 대비 남은/넘치는 자금</div>
+            </div>
+        </section>
+
+        <!-- Big Mac Inflation Panel -->
+        <section class="inflation-panel">
+            <div class="card cyber-card mac-card">
+                <div class="mac-header">
+                    <span class="material-symbols-outlined mac-icon">lunch_dining</span>
+                    <h2>체감 물가 계산기 (Big Mac Index)</h2>
+                </div>
+                <div class="mac-content">
+                    <div class="mac-box left">
+                        <span class="mac-title">현재 나이 기준 빅맥 1개 가격</span>
+                        <div class="mac-value neon-cyan">5,500 원</div>
+                        <span class="mac-sub">기준 가격</span>
+                    </div>
+                    <div class="mac-box middle flex-center">
+                        <span class="material-symbols-outlined arrow magenta-neon-text">sync_alt</span>
+                        <p class="inflation-label">수십 년 간의 인플레이션 누적</p>
+                    </div>
+                    <div class="mac-box right">
+                        <span class="mac-title">희망 은퇴 나이 기준 빅맥 1개 가격</span>
+                        <div class="mac-value neon-magenta"><span id="macFuture">?</span> 원</div>
+                        <span class="mac-sub">물가상승률 <span id="lblInf">2.5</span>% 매년 복리 적용</span>
+                    </div>
+                </div>
             </div>
         </section>
 
         <div class="layout-grid">
             <!-- Left Panel : Inputs -->
             <aside class="input-panel">
-                <div class="card md3-card">
-                    <h2><span class="material-symbols-outlined">person</span> 기본 정보</h2>
-                    <div class="form-group">
-                        <label>현재 나이: <span id="ageLabel">30</span>세</label>
-                        <input type="range" id="age" min="20" max="60" value="30">
+                <div class="card cyber-card">
+                    <h2><span class="material-symbols-outlined">person</span> 기본 상태 (Current Status)</h2>
+                    <div class="form-group row-flex">
+                        <label>현재 나이 (세)</label>
+                        <input type="number" id="age" min="20" max="100" value="30">
                     </div>
-                    <div class="form-group">
-                        <label>현재 총 자산: <span id="totalAssetLabel">10,000</span>만 원</label>
-                        <input type="range" id="initialAsset" min="0" max="500000" step="1000" value="10000">
+                    <div class="form-group row-flex">
+                        <label class="magenta-text">★ 희망 은퇴 나이 (세)</label>
+                        <input type="number" id="targetAge" min="30" max="100" value="45">
                     </div>
-                    <div class="form-group">
-                        <label>은퇴 후 월 목표 생활비: <span id="expenseLabel">300</span>만 원</label>
-                        <input type="range" id="expense" min="100" max="1000" step="50" value="300">
+                    <div class="form-group row-flex">
+                        <label>현재 월급 (만 원)</label>
+                        <input type="number" id="salary" min="0" value="400">
+                    </div>
+                    <div class="form-group row-flex">
+                        <label>기대 물가상승률 (%)</label>
+                        <input type="number" id="inflationRate" min="0" max="20" step="0.5" value="2.5">
+                    </div>
+                    <hr class="divider">
+                    <div class="form-group row-flex">
+                        <label>현재 보유 현금/예금 (만 원)</label>
+                        <input type="number" id="cash" min="0" value="3000">
+                    </div>
+                    <div class="form-group row-flex">
+                        <label>현재 보유 주식/펀드 (만 원)</label>
+                        <input type="number" id="stock" min="0" value="5000">
+                    </div>
+                    <div class="form-group row-flex">
+                        <label>현재 보유 부동산 시세 (만 원)</label>
+                        <input type="number" id="realestate" min="0" value="20000">
+                    </div>
+                    <div class="form-group row-flex">
+                        <label>은퇴 후 기댓값: 월 생활비 (만 원, 현재가 기준)</label>
+                        <input type="number" id="expense" min="50" value="300">
                     </div>
                 </div>
 
-                <div class="card md3-card">
-                    <h2><span class="material-symbols-outlined">chart_data</span> 인생 소득 곡선 (Income Curve)</h2>
-                    <p class="guide-text">나이대별 예상 월 소득의 변화를 점을 당겨 디자인하세요.</p>
-                    <div class="editor-container">
-                        <svg id="incomeEditor" viewBox="0 0 400 150" preserveAspectRatio="none">
-                            <path id="curveLine" fill="none" stroke="#1A73E8" stroke-width="3" stroke-linecap="round"></path>
-                            <!-- 5 Points: Start, 30s, 40s, 50s, 100 -->
-                            <circle id="p1" class="draggable point" r="8"></circle>
-                            <circle id="p2" class="draggable point" r="8"></circle>
-                            <circle id="p3" class="draggable point" r="8"></circle>
-                            <circle id="p4" class="draggable point" r="8"></circle>
-                            <circle id="p5" class="draggable point" r="8"></circle>
-                            
-                            <text id="p1Label" class="point-label" x="0" y="0">현재</text>
-                            <text id="p2Label" class="point-label" x="0" y="0">중반1</text>
-                            <text id="p3Label" class="point-label" x="0" y="0">정점</text>
-                            <text id="p4Label" class="point-label" x="0" y="0">중반2</text>
-                            <text id="p5Label" class="point-label" x="0" y="0">100세</text>
-                        </svg>
-                    </div>
-                </div>
-
-                <div class="card md3-card">
+                <div class="card cyber-card">
                     <h2><span class="material-symbols-outlined">event</span> 인생 이벤트 (Life Events)</h2>
-                    <p class="guide-text">주택 구매, 자녀 학자금 등 일시적 목돈 지출(-)/수입(+)을 추가하세요.</p>
+                    <p class="guide-text">일시적 목돈 지출(-)/수입(+)을 타임라인에 삽입.</p>
                     <div class="event-adder">
                         <input type="number" id="eventAge" placeholder="나이(예: 40)" min="20" max="100">
                         <input type="number" id="eventAmount" placeholder="금액(만원, 음수 지출)">
-                        <button id="addEventBtn" class="btn-primary">추가</button>
+                        <button id="addEventBtn" class="btn-cyan">추가</button>
                     </div>
                     <ul id="eventList" class="event-list"></ul>
                 </div>
 
-                <div class="card md3-card">
-                    <h2><span class="material-symbols-outlined">pie_chart</span> 자산별 기대 수익 및 비중</h2>
+                <div class="card cyber-card">
+                    <h2><span class="material-symbols-outlined">query_stats</span> 자본 시장 변수 (Market Variable)</h2>
+                    <p class="guide-text">주식 시장은 과거 S&P500 등 10년 주기 사이클(Bull/Bear) 모델에 따라 증폭 계산됩니다.</p>
                     <div class="form-group row-flex">
-                        <label>주식/펀드 연 수익률: <span id="stockReturnLabel">7.0</span>%</label>
-                        <input type="range" id="stockReturn" min="-5" max="25" step="0.5" value="7.0">
+                        <label>주식/펀드 연장기 평균 기대수익률 (%)</label>
+                        <input type="number" id="stockReturn" min="-5" max="25" step="0.5" value="7.0">
                     </div>
                     <div class="form-group row-flex">
-                        <label>여유 자금의 주식 투자 비중: <span id="stockRatioLabel">70</span>%</label>
-                        <input type="range" id="stockRatio" min="0" max="100" step="5" value="70">
-                        <!-- 나머지 비중은 현금성 자산 -->
+                        <label>잉여 자금의 주식 투자 비중 (%)</label>
+                        <input type="number" id="stockRatio" min="0" max="100" step="5" value="70">
                     </div>
                     <hr class="divider">
-                    <p class="guide-text">부동산은 시작 자산의 일부로 가정되며 여유 자금에서 추가 매입되지 않습니다.</p>
-                    <div class="form-group row-flex" style="margin-top: 12px;">
-                        <label>시작 자산 중 부동산(고정) 평가액: <span id="realFixedLabel">0</span>만 원</label>
-                        <input type="range" id="realFixed" min="0" max="500000" step="1000" value="0">
-                    </div>
                     <div class="form-group row-flex">
-                        <label>부동산 연 상승률: <span id="realestateReturnLabel">3.0</span>%</label>
-                        <input type="range" id="realestateReturn" min="-5" max="20" step="0.5" value="3.0">
+                        <label>부동산 연 상승률 (%)</label>
+                        <input type="number" id="realestateReturn" min="-5" max="20" step="0.5" value="3.0">
                     </div>
                 </div>
             </aside>
 
             <!-- Right Panel : Visualizations -->
             <section class="visual-panel">
-                <div class="card md3-card chart-container main-chart">
-                    <h2>총 자산 증식 곡선 (Total Asset Growth)</h2>
+                <div class="card cyber-card chart-container main-chart">
+                    <h2>총 자산 증식 곡선 (시장 10년 주기 시뮬레이션)</h2>
                     <div id="assetChart"></div>
                 </div>
 
-                <div class="card md3-card chart-container sub-chart">
-                    <h2>월 소득 흐름 (Income Flow)</h2>
+                <div class="card cyber-card chart-container sub-chart">
+                    <h2>월 예상 소득 및 물가 반영 목표 생활비 폭등</h2>
                     <div id="incomeChart"></div>
                 </div>
             </section>
