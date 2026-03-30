@@ -1,5 +1,5 @@
 /**
- * Intelligent Variable FIRE - UI App Module (v5.0 DRIP & Tax Edition)
+ * Intelligent Variable FIRE - UI App Module (v6.0 MD3 & Smart KR-FIRE)
  */
 
 let assetChartInst = null;
@@ -18,46 +18,79 @@ const formatKrwSmall = (val) => {
 
 // State
 let lifeEvents = [];
-let currentTheme = 'dark'; // default theme
+let currentTheme = 'light'; 
 
-const bindInputs = (selectors) => {
-    selectors.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) {
-            el.addEventListener('input', triggerSimulation);
-            el.addEventListener('change', triggerSimulation);
+const IDS = [
+    'age', 'targetAge', 'salary', 'inflationRate', 
+    'cash', 'stock', 'realestate', 'expense',
+    'stockReturn', 'stockRatio', 'realestateReturn',
+    'divYield', 'divGrowth', 'peakAge', 'incomeDecayRate'
+];
+
+let renderFrame = null;
+function triggerSimulationThrottled() {
+    if (renderFrame) cancelAnimationFrame(renderFrame);
+    renderFrame = requestAnimationFrame(() => {
+        triggerSimulation();
+    });
+}
+
+function bindResponsiveInputs() {
+    IDS.forEach(id => {
+        const rangeEl = document.getElementById(id);
+        const numEl = document.getElementById(id + '_num');
+        if (rangeEl && numEl) {
+            // Two-way binding
+            rangeEl.addEventListener('input', (e) => {
+                numEl.value = e.target.value;
+                triggerSimulationThrottled();
+            });
+            numEl.addEventListener('input', (e) => {
+                rangeEl.value = e.target.value;
+                triggerSimulationThrottled();
+            });
         }
     });
-};
 
-document.getElementById('addEventBtn').addEventListener('click', () => {
+    const reinvestDiv = document.getElementById('reinvestDiv');
+    const stressTest = document.getElementById('stressTest');
+    if (reinvestDiv) reinvestDiv.addEventListener('change', triggerSimulationThrottled);
+    if (stressTest) stressTest.addEventListener('change', triggerSimulationThrottled);
+
+    document.querySelectorAll('input[name="accountType"]').forEach(r => {
+        r.addEventListener('change', triggerSimulationThrottled);
+    });
+}
+
+document.getElementById('addEventBtn')?.addEventListener('click', () => {
     const age = parseInt(document.getElementById('eventAge').value);
     const amt = parseInt(document.getElementById('eventAmount').value);
     if (!age || !amt) return;
     lifeEvents.push({ age, amount: amt });
     lifeEvents.sort((a,b) => a.age - b.age);
     renderEventList();
-    triggerSimulation();
+    triggerSimulationThrottled();
 });
 
 function removeEvent(idx) {
     lifeEvents.splice(idx, 1);
     renderEventList();
-    triggerSimulation();
+    triggerSimulationThrottled();
 }
 
 function renderEventList() {
     const ul = document.getElementById('eventList');
+    if(!ul) return;
     ul.innerHTML = '';
     lifeEvents.forEach((e, idx) => {
         const li = document.createElement('li');
         li.className = 'event-item';
-        let cls = e.amount > 0 ? 'amount-plus' : 'amount-minus';
+        let cls = e.amount > 0 ? 'text-success' : 'text-error';
         let sign = e.amount > 0 ? '+' : '';
         li.innerHTML = `
             <span>${e.age}세</span>
-            <span class="${cls}">${sign}${formatKrw(e.amount)}만 원</span>
-            <button class="event-del" onclick="removeEvent(${idx})">&times;</button>
+            <span class="${cls}" style="font-weight:600;">${sign}${formatKrw(e.amount)}만 원</span>
+            <button class="event-del material-symbols-outlined" onclick="removeEvent(${idx})">close</button>
         `;
         ul.appendChild(li);
     });
@@ -78,54 +111,44 @@ function initThemeToggle() {
             icon.innerText = 'light_mode';
             currentTheme = 'light';
         }
-        triggerSimulation();
+        triggerSimulationThrottled();
     };
     
-    applyTheme(sw.checked);
+    // Auto detect OS preference
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    sw.checked = prefersDark;
+    applyTheme(prefersDark);
+    
     sw.addEventListener('change', (e) => applyTheme(e.target.checked));
 }
 
 function init() {
-    bindInputs([
-        'age', 'targetAge', 'salary', 'inflationRate', 
-        'cash', 'stock', 'realestate', 'expense',
-        'stockReturn', 'stockRatio', 'realestateReturn',
-        'divYield', 'divGrowth', 'reinvestDiv'
-    ]);
-    
-    let radios = document.querySelectorAll('input[name="accountType"]');
-    radios.forEach(r => r.addEventListener('change', triggerSimulation));
-
-    document.getElementById('stressTest').addEventListener('change', triggerSimulation);
+    bindResponsiveInputs();
     initThemeToggle();
 }
 
 function getBaseInputs() {
-    let cash = parseInt(document.getElementById('cash').value || 0);
-    let stock = parseInt(document.getElementById('stock').value || 0);
-    let realestate = parseInt(document.getElementById('realestate').value || 0);
-    
-    let accountType = document.querySelector('input[name="accountType"]:checked').value;
-
     return {
         age: parseInt(document.getElementById('age').value || 30),
         targetAge: parseInt(document.getElementById('targetAge').value || 45),
         salary: parseInt(document.getElementById('salary').value || 400),
         inflationRate: parseFloat(document.getElementById('inflationRate').value || 2.5),
-        cash: cash,
-        stock: stock,
-        realestate: realestate,
+        cash: parseInt(document.getElementById('cash').value || 0),
+        stock: parseInt(document.getElementById('stock').value || 0),
+        realestate: parseInt(document.getElementById('realestate').value || 0),
         expense: parseInt(document.getElementById('expense').value || 300),
         stockReturn: parseFloat(document.getElementById('stockReturn').value || 0),
         realestateReturn: parseFloat(document.getElementById('realestateReturn').value || 0),
         stockRatio: parseInt(document.getElementById('stockRatio').value || 0),
         lifeEvents: [...lifeEvents],
         
-        // DRIP fields
         divYield: parseFloat(document.getElementById('divYield').value || 0),
         divGrowth: parseFloat(document.getElementById('divGrowth').value || 0),
-        accountType: accountType,
-        reinvestDiv: document.getElementById('reinvestDiv').checked
+        accountType: document.querySelector('input[name="accountType"]:checked').value,
+        reinvestDiv: document.getElementById('reinvestDiv').checked,
+        
+        peakAge: parseInt(document.getElementById('peakAge').value || 50),
+        incomeDecayRate: parseFloat(document.getElementById('incomeDecayRate').value || 15)
     };
 }
 
@@ -134,7 +157,6 @@ function triggerSimulation() {
     let baseInputs = getBaseInputs();
     baseInputs.isStressTest = false;
     
-    // User Selected Simulation
     let userResult = runSimulation(baseInputs);
     
     let stressResult = null;
@@ -144,9 +166,6 @@ function triggerSimulation() {
         stressResult = runSimulation(stressInputs);
     }
     
-    // -------------------------------------------------------------------
-    // Pedagogical Scenarios for "Acceleration & DRIP comparisons"
-    // -------------------------------------------------------------------
     let inputsNoDiv = getBaseInputs(); inputsNoDiv.divYield = 0; inputsNoDiv.reinvestDiv = false;
     let resNoDiv = runSimulation(inputsNoDiv);
 
@@ -156,22 +175,20 @@ function triggerSimulation() {
     let inputsDivReinvest = getBaseInputs(); inputsDivReinvest.reinvestDiv = true;
     let resDivRe = runSimulation(inputsDivReinvest);
 
-    // Tax Comparison (General vs Current Selected)
     let inputsGeneralAcc = getBaseInputs(); inputsGeneralAcc.accountType = 'general'; inputsGeneralAcc.reinvestDiv = true;
     let resTaxGeneral = runSimulation(inputsGeneralAcc);
     
     updateMetrics(userResult, Object.assign({}, baseInputs));
     updateBigMacIndex(baseInputs.inflationRate, baseInputs.age, baseInputs.targetAge);
     
-    // Banner update (Time Saved)
     updateBanner(resNoDiv.fireAge, resDivRe.fireAge);
 
-    // Render 5 Charts
     renderMainCharts(userResult.history, stressResult?.history, userResult.fireAge, baseInputs.targetAge);
     renderAccelChart(resNoDiv.history, resDivNoRe.history, resDivRe.history);
-    renderTaxBar(resTaxGeneral.cumulativeTaxPaid, userResult.cumulativeTaxPaid, baseInputs.accountType);
     
-    // Gauge using the last valid history point (Target age or end of sim)
+    // V6 Tax Bar includes NHI & Comprehensive Tax
+    renderTaxBar(resTaxGeneral.cumulativeTaxPaid, userResult.cumulativeTaxPaid, userResult.cumulativeNhiPaid, baseInputs.accountType);
+    
     let finalGaugeVal = 0;
     if (userResult.history && userResult.history.length > 0) {
         let targetIdx = userResult.history.findIndex(h => h.age === baseInputs.targetAge);
@@ -189,7 +206,7 @@ function updateBanner(fireAgeNoDiv, fireAgeReinvest) {
         let diff = (fireAgeNoDiv - fireAgeReinvest).toFixed(1);
         if (diff > 0) {
             banner.classList.remove('hidden');
-            textEl.innerText = `스노우볼 엔진 작동! 절세 및 배당 재투자로 은퇴가 ${diff}년 앞당겨졌습니다!`;
+            textEl.innerText = `가속 로직 발동! 절세 및 스노우볼 재투자로 조기 은퇴가 ${diff}년 앞당겨졌습니다!`;
         } else {
             banner.classList.add('hidden');
         }
@@ -209,15 +226,14 @@ function updateMetrics(baseRes, inputs) {
     } else {
         elAge.innerText = "달성 불가";
         elDelay.innerText = "-";
-        elDelay.className = 'metric-sub red-text';
+        elDelay.className = 'metric-sub text-error';
     }
     
     let elTargetAsset = document.getElementById('resTargetGapAsset');
     if (baseRes.requiredAssetAtTargetAge) {
-        let tgtEok = (baseRes.requiredAssetAtTargetAge / 10000).toFixed(1);
-        elTargetAsset.innerText = tgtEok + "억 원";
+        elTargetAsset.innerText = (baseRes.requiredAssetAtTargetAge / 10000).toFixed(1) + "억 원";
     } else {
-        elTargetAsset.innerText = "측정 불가";
+        elTargetAsset.innerText = "-";
     }
     
     let elGap = document.getElementById('resGapAmount');
@@ -226,16 +242,13 @@ function updateMetrics(baseRes, inputs) {
         let gap = baseRes.assetAtTargetAge - baseRes.requiredAssetAtTargetAge;
         if (gap >= 0) {
             elGap.innerText = "+" + formatKrw(Math.round(gap)) + "만 원";
-            elGap.className = "metric-value green-text";
+            elGap.className = "metric-value text-success";
             elGapLabel.innerText = `${inputs.targetAge}세 자금 확보 완료`;
         } else {
             elGap.innerText = formatKrw(Math.round(gap)) + "만 원";
-            elGap.className = "metric-value red-text";
-            elGapLabel.innerText = `${inputs.targetAge}세 부족 금액`;
+            elGap.className = "metric-value text-error";
+            elGapLabel.innerText = `목표 도달을 위해 부족한 금액`;
         }
-    } else {
-        elGap.innerText = "-";
-        elGapLabel.innerText = "범위 오류";
     }
 }
 
@@ -248,9 +261,7 @@ function updateBigMacIndex(inflationRate, currentAge, targetAge) {
     elMacFuture.innerText = formatKrw(Math.round(futurePrice));
 }
 
-// ------------------------------------
-// Chart 1 & 2: Main Assets & Income
-// ------------------------------------
+// Chart 1 & 2: Assets & Income (With MD3 Colors)
 function renderMainCharts(history, stressHistory, fireAge, targetAge) {
     if(!history || history.length === 0) return;
     
@@ -266,43 +277,43 @@ function renderMainCharts(history, stressHistory, fireAge, targetAge) {
     
     if (targetAge) {
         annotations.xaxis.push({
-            x: targetAge + '세', strokeDashArray: 5, borderColor: '#c084fc',
-            label: { borderColor: '#c084fc', style: { color: '#fff', background: '#c084fc' }, text: '희망 은퇴' }
+            x: targetAge + '세', strokeDashArray: 5, borderColor: '#1A73E8',
+            label: { borderColor: '#1A73E8', style: { color: '#fff', background: '#1A73E8' }, text: '희망 은퇴' }
         });
     }
 
     if(fireAge) {
         annotations.xaxis.push({
-            x: fireAge + '세', strokeDashArray: 0, borderColor: '#10b981',
-            label: { borderColor: '#10b981', style: { color: '#fff', background: '#10b981' }, text: '지상낙원 입성' }
+            x: fireAge + '세', strokeDashArray: 0, borderColor: '#188038',
+            label: { borderColor: '#188038', style: { color: '#fff', background: '#188038' }, text: '목표 달성 지점' }
         });
     }
 
     let assetSeries = [
         { name: "부동산", data: realData }, { name: "주식/펀드", data: stockData }, 
-        { name: "현금", data: cashData }, { name: "인플레이션 반영 목표치", type: 'line', data: targetData }
+        { name: "현금", data: cashData }, { name: "안전마진 목표선", type: 'line', data: targetData }
     ];
-    let colors = ['#f59e0b', '#0284c7', '#94a3b8', '#10b981'];
-    if(currentTheme === 'dark') { colors[1] = '#38bdf8'; colors[2] = '#334155'; }
+    let colors = ['#F29900', '#1A73E8', '#9AA0A6', '#188038'];
+    if(currentTheme === 'dark') { colors[0] = '#FCD663'; colors[1] = '#8AB4F8'; colors[2] = '#5F6368'; colors[3] = '#81C995'; }
 
     let strokeConf = { width: [2, 2, 2, 3], curve: 'smooth', dashArray: [0,0,0,4] };
     
     if(stressHistory) {
         let stressData = stressHistory.map(h => h.total);
         assetSeries.push({ name: "스트레스 위기자산", type: 'line', data: stressData });
-        colors.push('#ef4444'); strokeConf.width.push(2); strokeConf.dashArray.push(5);
+        colors.push(currentTheme === 'dark' ? '#F28B82' : '#D93025'); strokeConf.width.push(2); strokeConf.dashArray.push(5);
     }
 
-    let chartTheme = currentTheme === 'dark' ? 'dark' : 'light';
-    let bgChart = 'transparent';
+    let cTheme = currentTheme;
+    let fontF = 'Google Sans, Roboto, sans-serif';
 
     if(assetChartInst) {
-        assetChartInst.updateOptions({ theme: { mode: chartTheme }, chart: { background: bgChart }, annotations, stroke: strokeConf, colors });
+        assetChartInst.updateOptions({ theme: { mode: cTheme }, annotations, stroke: strokeConf, colors });
         assetChartInst.updateSeries(assetSeries);
     } else {
         assetChartInst = new ApexCharts(document.querySelector("#assetChart"), {
-            series: assetSeries, theme: { mode: chartTheme },
-            chart: { background: bgChart, type: 'area', height: 420, stacked: false, fontFamily: 'Rajdhani', toolbar: { show: false }, animations: { enabled: true, easing: 'easeinout', speed: 150 } },
+            series: assetSeries, theme: { mode: cTheme },
+            chart: { background: 'transparent', type: 'area', height: 420, stacked: false, fontFamily: fontF, toolbar: { show: false }, animations: { enabled: false } },
             stroke: strokeConf, colors: colors,
             fill: { type: ['gradient','gradient','gradient','solid','solid'], opacity: [0.3, 0.4, 0.6, 1, 1] },
             xaxis: { categories: xCategories, tickAmount: 10 }, yaxis: { labels: { formatter: formatKrwSmall } },
@@ -311,14 +322,14 @@ function renderMainCharts(history, stressHistory, fireAge, targetAge) {
         assetChartInst.render();
     }
 
-    let incomeColors = currentTheme === 'dark' ? ['#38bdf8', '#c084fc'] : ['#0284c7', '#9333ea'];
+    let incomeColors = currentTheme === 'dark' ? ['#8AB4F8', '#F28B82'] : ['#1A73E8', '#D93025'];
     if(incomeChartInst) {
-        incomeChartInst.updateOptions({ theme: { mode: chartTheme }, chart: { background: bgChart }, colors: incomeColors });
-        incomeChartInst.updateSeries([ { name: "명목 월 소득", data: incomeData }, { name: "목표 생활비 한도", data: expenseData } ]);
+        incomeChartInst.updateOptions({ theme: { mode: cTheme }, colors: incomeColors });
+        incomeChartInst.updateSeries([ { name: "근로 월 소득", data: incomeData }, { name: "필수 월 지출 (건보료 포함)", data: expenseData } ]);
     } else {
         incomeChartInst = new ApexCharts(document.querySelector("#incomeChart"), {
-            series: [{ name: "명목 월 소득", data: incomeData }, { name: "목표 생활비 한도", data: expenseData }],
-            theme: { mode: chartTheme }, chart: { background: bgChart, type: 'line', height: 300, fontFamily: 'Rajdhani', toolbar: { show: false } },
+            series: [{ name: "근로 월 소득", data: incomeData }, { name: "필수 월 지출 (건보료 포함)", data: expenseData }],
+            theme: { mode: cTheme }, chart: { background: 'transparent', type: 'line', height: 320, fontFamily: fontF, toolbar: { show: false }, animations: { enabled: false } },
             colors: incomeColors, stroke: { width: 3, curve: 'smooth', dashArray: [0, 5] },
             xaxis: { categories: xCategories, tickAmount: 10 }, yaxis: { labels: { formatter: formatKrwSmall } },
             dataLabels: { enabled: false }, legend: { position: 'top' }
@@ -327,30 +338,26 @@ function renderMainCharts(history, stressHistory, fireAge, targetAge) {
     }
 }
 
-// ------------------------------------
 // Chart 3: Acceleration 3-Lines
-// ------------------------------------
 function renderAccelChart(hNoDiv, hNoRe, hRe) {
     if(!hNoDiv || hNoDiv.length === 0) return;
     const xCategories = hNoDiv.map(h => h.age + '세');
     
-    let cTheme = currentTheme === 'dark' ? 'dark' : 'light';
     let series = [
-        { name: "1. 일반 주식 (배당 없음)", data: hNoDiv.map(h => h.total) },
-        { name: "2. 배당금 은행저축/소비 (재투자 안함)", data: hNoRe.map(h => h.total) },
-        { name: "3. 배당금 스노우볼 재투자시 (제트엔진)", data: hRe.map(h => h.total) }
+        { name: "1. 배당금 재투자 안함 (기본 시세차익)", data: hNoDiv.map(h => h.total) },
+        { name: "2. 배당금을 단순 소비하는 경우", data: hNoRe.map(h => h.total) },
+        { name: "3. 배당금 전액 무한 스노우볼 재투자", data: hRe.map(h => h.total) }
     ];
-    let colors = currentTheme === 'dark' ? ['#64748b', '#f472b6', '#38bdf8'] : ['#94a3b8', '#db2777', '#0284c7'];
+    let colors = currentTheme === 'dark' ? ['#5F6368', '#F28B82', '#8AB4F8'] : ['#9AA0A6', '#D93025', '#1A73E8'];
 
     if(accelChartInst) {
-        accelChartInst.updateOptions({ theme: { mode: cTheme }, colors });
+        accelChartInst.updateOptions({ theme: { mode: currentTheme }, colors });
         accelChartInst.updateSeries(series);
     } else {
         accelChartInst = new ApexCharts(document.querySelector("#accelChart"), {
-            series: series, theme: { mode: cTheme },
-            chart: { type: 'line', height: 350, fontFamily: 'Rajdhani', toolbar: { show: false }, background: 'transparent' },
-            colors: colors,
-            stroke: { width: [3, 3, 4], curve: 'smooth' },
+            series: series, theme: { mode: currentTheme },
+            chart: { type: 'line', height: 350, fontFamily: 'Google Sans', toolbar: { show: false }, background: 'transparent', animations: { enabled: false } },
+            colors: colors, stroke: { width: [3, 3, 4], curve: 'smooth' },
             xaxis: { categories: xCategories, tickAmount: 10 },
             yaxis: { labels: { formatter: formatKrwSmall } },
             dataLabels: { enabled: false }, legend: { position: 'top' }
@@ -359,59 +366,56 @@ function renderAccelChart(hNoDiv, hNoRe, hRe) {
     }
 }
 
-// ------------------------------------
-// Chart 4: Tax Comparison Bar
-// ------------------------------------
-function renderTaxBar(taxGen, taxCurrent, accType) {
-    let cTheme = currentTheme === 'dark' ? 'dark' : 'light';
-    let labelAcc = accType === 'isa' ? 'ISA 혜택 적용' : (accType === 'pension' ? '연금저축/IRP 적용' : '일반 계좌(현재)');
+// Chart 4: Tax Bar Chart (Includes NHI)
+function renderTaxBar(taxGen, taxCurrent, currentNhi, accType) {
+    let labelAcc = accType === 'isa' ? '방어 계좌 적용' : (accType === 'pension' ? '연금저축/IRP 적용' : '일반 계좌 (세금폭탄)');
     
-    let series = [{ name: "생애 누적 납부 세금", data: [taxGen, taxCurrent] }];
-    let categories = ["일반 계좌일 시", labelAcc];
+    let series = [
+        { name: "누적 세금 (종합과세 포함)", data: [taxGen, taxCurrent] },
+        { name: "은퇴 후 누적 건보료 폭탄", data: [currentNhi, currentNhi] }
+    ];
+    let categories = ["일반 계좌 이용 시", labelAcc];
     
-    let colors = currentTheme === 'dark' ? ['#ef4444', '#10b981'] : ['#dc2626', '#059669'];
+    let colors = currentTheme === 'dark' ? ['#F28B82', '#FCC936'] : ['#D93025', '#F29900'];
 
     if(taxBarChartInst) {
-        taxBarChartInst.updateOptions({ theme: { mode: cTheme }, xaxis: { categories }, colors });
+        taxBarChartInst.updateOptions({ theme: { mode: currentTheme }, xaxis: { categories }, colors });
         taxBarChartInst.updateSeries(series);
     } else {
         taxBarChartInst = new ApexCharts(document.querySelector("#taxBarChart"), {
-            series: series, theme: { mode: cTheme },
-            chart: { type: 'bar', height: 260, fontFamily: 'Rajdhani', toolbar: { show: false }, background: 'transparent' },
+            series: series, theme: { mode: currentTheme },
+            chart: { type: 'bar', height: 280, stacked: true, fontFamily: 'Google Sans', toolbar: { show: false }, background: 'transparent', animations: { enabled: false } },
             colors: colors,
-            plotOptions: { bar: { distributed: true, borderRadius: 4, horizontal: true } },
+            plotOptions: { bar: { borderRadius: 4, horizontal: true } },
             dataLabels: { enabled: true, formatter: val => formatKrwSmall(val) },
             xaxis: { categories: categories, labels: { formatter: formatKrwSmall } },
-            legend: { show: false }
+            legend: { position: 'bottom' }
         });
         taxBarChartInst.render();
     }
 }
 
-// ------------------------------------
 // Chart 5: Dividend Coverage Gauge
-// ------------------------------------
 function renderGaugeChart(coverageRatio) {
-    let cTheme = currentTheme === 'dark' ? 'dark' : 'light';
     let val = Math.min(coverageRatio || 0, 100).toFixed(1);
-    let color = currentTheme === 'dark' ? '#38bdf8' : '#0284c7';
-    if(val >= 100) color = '#10b981';
+    let color = currentTheme === 'dark' ? '#8AB4F8' : '#1A73E8';
+    if(val >= 100) color = currentTheme === 'dark' ? '#81C995' : '#188038';
 
     if(divGaugeChartInst) {
-        divGaugeChartInst.updateOptions({ theme: { mode: cTheme }, colors: [color] });
+        divGaugeChartInst.updateOptions({ theme: { mode: currentTheme }, colors: [color] });
         divGaugeChartInst.updateSeries([val]);
     } else {
         divGaugeChartInst = new ApexCharts(document.querySelector("#divGaugeChart"), {
-            series: [val], theme: { mode: cTheme },
-            chart: { type: 'radialBar', height: 280, fontFamily: 'Rajdhani', background: 'transparent' },
+            series: [val], theme: { mode: currentTheme },
+            chart: { type: 'radialBar', height: 300, fontFamily: 'Google Sans', background: 'transparent', animations: { enabled: false } },
             colors: [color],
             plotOptions: {
                 radialBar: {
                     hollow: { size: '65%' },
-                    dataLabels: { name: { show: true, fontSize: '14px', color: 'var(--text-med)', offsetY: -10 }, value: { show: true, fontSize: '36px', fontWeight: 700, color: 'var(--text-high)', formatter: val => val + "%" } }
+                    dataLabels: { name: { show: true, fontSize: '14px', color: 'var(--md-sys-color-on-surface-variant)', offsetY: -10 }, value: { show: true, fontSize: '36px', fontWeight: 700, color: 'var(--md-sys-color-on-surface)', formatter: val => val + "%" } }
                 }
             },
-            labels: ['생활비 충당률']
+            labels: ['생활비 커버리지 달성률']
         });
         divGaugeChartInst.render();
     }
