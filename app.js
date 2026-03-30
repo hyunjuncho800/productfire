@@ -332,10 +332,19 @@ function renderMainCharts(history, stressHistory, fireAge, targetAge) {
     } else {
         assetChartInst = new ApexCharts(chartEl, {
             series: assetSeries, theme: { mode: currentTheme },
-            chart: { background: 'transparent', type: 'area', height: 420, fontFamily: 'Noto Sans KR', toolbar: { show: false } },
+            chart: { background: 'transparent', type: 'area', width: '100%', height: 420, fontFamily: 'Noto Sans KR', toolbar: { show: false } },
             colors: colors, stroke: { width: [2, 2, 2, 4, 2], curve: 'smooth', dashArray: [0, 0, 0, 8, 5] },
             xaxis: { categories: xCategories, tickAmount: 10 }, yaxis: { labels: { formatter: formatKrwSmall } },
-            legend: { position: 'top', fontWeight: 600 }
+            tooltip: { y: { formatter: formatKrwSmall } },
+            legend: { position: 'top', fontWeight: 600 },
+            responsive: [{
+                breakpoint: 600,
+                options: {
+                    xaxis: { tickAmount: 5 },
+                    chart: { height: 350 },
+                    legend: { position: 'bottom' }
+                }
+            }]
         });
         assetChartInst.render();
     }
@@ -350,9 +359,17 @@ function renderMainCharts(history, stressHistory, fireAge, targetAge) {
         } else {
             incomeChartInst = new ApexCharts(incomeEl, {
                 series: incomeSeries, theme: { mode: currentTheme },
-                chart: { background: 'transparent', type: 'line', height: 320, fontFamily: 'Noto Sans KR', toolbar: { show: false } },
+                chart: { background: 'transparent', type: 'line', width: '100%', height: 320, fontFamily: 'Noto Sans KR', toolbar: { show: false } },
                 colors: iColors, stroke: { width: 4, curve: 'smooth', dashArray: [0, 8] },
-                xaxis: { categories: xCategories, tickAmount: 10 }, yaxis: { labels: { formatter: formatKrwSmall } }
+                xaxis: { categories: xCategories, tickAmount: 10 }, yaxis: { labels: { formatter: formatKrwSmall } },
+                tooltip: { y: { formatter: formatKrwSmall } },
+                responsive: [{
+                    breakpoint: 600,
+                    options: {
+                        xaxis: { tickAmount: 5 },
+                        chart: { height: 280 }
+                    }
+                }]
             });
             incomeChartInst.render();
         }
@@ -376,10 +393,17 @@ function renderAccelChart(hNoDiv, hNoRe, hRe) {
     } else {
         accelChartInst = new ApexCharts(chartEl, {
             series: series, theme: { mode: currentTheme },
-            chart: { type: 'line', height: 350, fontFamily: 'Noto Sans KR', toolbar: { show: false }, background: 'transparent' },
+            chart: { type: 'line', width: '100%', height: 350, fontFamily: 'Noto Sans KR', toolbar: { show: false }, background: 'transparent' },
             colors: colors, stroke: { width: [3, 3, 5], curve: 'smooth' },
             xaxis: { categories: hNoDiv.map(h => h.age + '세'), tickAmount: 10 },
-            yaxis: { labels: { formatter: formatKrwSmall } }
+            yaxis: { labels: { formatter: formatKrwSmall } },
+            tooltip: { y: { formatter: formatKrwSmall } },
+            responsive: [{
+                breakpoint: 600,
+                options: {
+                    xaxis: { tickAmount: 5 }
+                }
+            }]
         });
         accelChartInst.render();
     }
