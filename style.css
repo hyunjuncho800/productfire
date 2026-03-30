@@ -171,3 +171,39 @@ input[type="number"]:focus { border-color: var(--cyan); background: var(--bg-car
     .arrow { transform: rotate(90deg); }
     .header-controls { flex-direction: column; gap: 12px; align-items: flex-end; }
 }
+
+/* SEO Content Section */
+.seo-content {
+    margin: 40px auto; padding: 32px;
+    background: var(--bg-card); border-radius: var(--radius-m);
+    border: 1px solid var(--border); box-shadow: var(--elev-card);
+}
+.seo-content h2 { margin-top: 0; margin-bottom: 24px; font-size: 24px; border-bottom: 2px solid var(--border); padding-bottom: 12px; font-weight: 700; color: var(--cyan); }
+.seo-content h3 { color: var(--magenta); margin-top: 32px; font-size: 18px; margin-bottom: 12px; font-weight: 600; }
+.seo-content p { line-height: 1.7; color: var(--text-med); font-size: 15px; margin-bottom: 16px; word-break: keep-all; }
+.seo-content a { color: var(--cyan); text-decoration: none; }
+.seo-content a:hover { text-decoration: underline; }
+
+/* Subpages Content */
+.subpage-container {
+    max-width: 900px; margin: 40px auto; padding: 40px;
+    background: var(--bg-card); border-radius: var(--radius-l);
+    border: 1px solid var(--border); min-height: 60vh;
+}
+.subpage-container h1 { color: var(--cyan); font-size: 28px; margin-bottom: 24px; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
+.subpage-container h2 { color: var(--magenta); font-size: 20px; margin-top: 32px; margin-bottom: 16px; }
+.subpage-container p { line-height: 1.7; color: var(--text-med); margin-bottom: 16px; font-size: 15px; word-break: keep-all; }
+.subpage-container ul { color: var(--text-med); line-height: 1.7; margin-bottom: 16px; font-size: 15px; }
+
+/* AdSense Placeholders UX */
+.ad-unit-wrapper { margin: 32px 0; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.02); min-height: 100px; border-radius: 8px; }
+
+/* Footer */
+.app-footer {
+    background: var(--bg-card); border-top: 1px solid var(--border);
+    padding: 32px; margin-top: 40px; text-align: center;
+}
+.footer-nav { margin-bottom: 16px; }
+.footer-nav a { color: var(--text-high); text-decoration: none; margin: 0 16px; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+.footer-nav a:hover { color: var(--cyan); }
+.footer-copy { color: var(--text-med); font-size: 13px; line-height: 1.6; }

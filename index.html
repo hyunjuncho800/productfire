@@ -3,7 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>파이어족 계산기</title>
+    <title>파이어족 계산기 - 은퇴 시기 시뮬레이터 및 빅맥 지수 뷰어</title>
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="파이어족 계산기로 나의 조기 은퇴 시기를 정확히 시뮬레이션 해보세요. 인플레이션을 반영한 빅맥 화폐 가치, S&P 500 증시 하락장 사이클을 바탕으로 목표 은퇴 나이와 필요 자금을 객관적으로 산출해 드립니다.">
+    <meta name="keywords" content="파이어족, 파이어족 계산기, 조기 은퇴, 4% 규칙, 인플레이션, 빅맥지수, 은퇴 설계, FIRE movement, 재테크 시뮬레이터">
+    <meta property="og:title" content="현실 기반 파이어족 계산기 (FIRE Simulator)">
+    <meta property="og:description" content="단순 복리 계산을 넘어 시장의 폭락 변수와 물가 상승 충격까지 입체적으로 반영한 파이어족 조기 은퇴 계산기입니다.">
+    
+    <!-- Google AdSense -->
+    <meta name="google-adsense-account" content="ca-pub-4790912864460441">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4790912864460441" crossorigin="anonymous"></script>
+    
     <!-- Google Fonts & Material Symbols -->
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
@@ -12,8 +22,10 @@
 <body class="dark-theme">
     <header class="app-header">
         <div class="logo-wrapper">
-            <span class="material-symbols-outlined logo-icon cyan-neon">bolt</span>
-            <h1 class="cyan-neon-text">파이어족 계산기 <span style="font-size:12px;opacity:0.6;">v4.0 Cyber</span></h1>
+            <a href="index.html" style="display:flex; align-items:center; text-decoration:none; color:inherit;">
+                <span class="material-symbols-outlined logo-icon cyan-neon">bolt</span>
+                <h1 class="cyan-neon-text">파이어족 계산기 <span style="font-size:12px;opacity:0.6;">v4.0 Cyber</span></h1>
+            </a>
         </div>
         <div class="header-controls">
             <!-- Theme Toggle -->
@@ -65,18 +77,18 @@
                 </div>
                 <div class="mac-content">
                     <div class="mac-box left">
-                        <span class="mac-title">현재 나이 기준 빅맥 1개 가격</span>
+                        <span class="mac-title">현재 나이 기준 빅맥 1개 단가</span>
                         <div class="mac-value neon-cyan">5,500 원</div>
                         <span class="mac-sub">기준 가격</span>
                     </div>
                     <div class="mac-box middle flex-center">
                         <span class="material-symbols-outlined arrow magenta-neon-text">sync_alt</span>
-                        <p class="inflation-label">수십 년 간의 인플레이션 누적</p>
+                        <p class="inflation-label">수십 년 간의 인플레이션 방어 필요성</p>
                     </div>
                     <div class="mac-box right">
-                        <span class="mac-title">희망 은퇴 나이 기준 빅맥 1개 가격</span>
+                        <span class="mac-title">희망 은퇴 나이 기준 빅맥 1개 단가</span>
                         <div class="mac-value neon-magenta"><span id="macFuture">?</span> 원</div>
-                        <span class="mac-sub">물가상승률 <span id="lblInf">2.5</span>% 매년 복리 적용</span>
+                        <span class="mac-sub">물가상승률 <span id="lblInf">2.5</span>% 매년 복리 적용 시</span>
                     </div>
                 </div>
             </div>
@@ -117,14 +129,14 @@
                         <input type="number" id="realestate" min="0" value="20000">
                     </div>
                     <div class="form-group row-flex">
-                        <label>은퇴 후 기댓값: 월 생활비 (만 원, 현재가 기준)</label>
+                        <label>은퇴 후 기댓값: 월 생활비 (현재가치 만 원 기준)</label>
                         <input type="number" id="expense" min="50" value="300">
                     </div>
                 </div>
 
                 <div class="card cyber-card">
                     <h2><span class="material-symbols-outlined">event</span> 인생 이벤트 (Life Events)</h2>
-                    <p class="guide-text">일시적 목돈 지출(-)/수입(+)을 타임라인에 삽입.</p>
+                    <p class="guide-text">일시적 목돈 지출(-)/수입(+)을 연도별 타임라인에 삽입하세요. (예: 대출상환, 학자금)</p>
                     <div class="event-adder">
                         <input type="number" id="eventAge" placeholder="나이(예: 40)" min="20" max="100">
                         <input type="number" id="eventAmount" placeholder="금액(만원, 음수 지출)">
@@ -132,6 +144,9 @@
                     </div>
                     <ul id="eventList" class="event-list"></ul>
                 </div>
+                
+                <!-- AdSense Auto Layout Margin -->
+                <div class="ad-unit-wrapper"></div>
 
                 <div class="card cyber-card">
                     <h2><span class="material-symbols-outlined">query_stats</span> 자본 시장 변수 (Market Variable)</h2>
@@ -160,16 +175,54 @@
                 </div>
 
                 <div class="card cyber-card chart-container sub-chart">
-                    <h2>월 예상 소득 및 물가 반영 목표 생활비 폭등</h2>
+                    <h2>월 예상 소득 및 물가 반영 목표 생활비 폭등 한계선</h2>
                     <div id="incomeChart"></div>
                 </div>
             </section>
         </div>
+
+        <!-- SEO Rich Content Block for AdSense Approval (Thick Content) -->
+        <section class="seo-content" id="article-fire-movement">
+            <h2>경제적 자유(FIRE) 조기 은퇴를 위한 완벽 시뮬레이션 가이드</h2>
+            
+            <p>파이어족(F.I.R.E. - Financial Independence, Retire Early) 계산기는 단순한 단리/복리 계산기를 넘어섭니다. 은퇴를 설계할 때 가장 무서운 적은 현실 세계의 조용한 암살자인 <strong>물가상승률(인플레이션)</strong>과, 평온하던 시장을 박살 내는 <strong>자본 시장의 급격한 변동성 주기(Bull & Bear Cycle)</strong>입니다. 본 시뮬레이터는 이러한 두 가지 리스크를 입체적으로 적용해 현실적이고 오차 없는 파이어 목표 도달 시점을 산출해 냅니다.</p>
+
+            <div class="ad-unit-wrapper">
+                <!-- Google AdSense Placeholder (In-article) -->
+                <!-- <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4790912864460441" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script> -->
+            </div>
+            
+            <h3>1. 인플레이션 방어와 빅맥 지수 (Big Mac Index)</h3>
+            <p>화폐 가치는 시간이 지날수록 하락합니다. 현재 계좌에 있는 10억 원의 구매력(Purchasing Power)은 20년 뒤의 10억 원과 결코 같지 않습니다. 많은 은퇴 시뮬레이터들이 현재 기댓값의 이자로 계산하지만, 물가 상승이라는 벽에 부딪힙니다. 우리의 '체감 물가 계산기'는 근로 소득과 더불어 매년 물가가 상승할 때 나의 <strong>목표 생활비</strong>가 얼마나 팽창해야 원래의 삶을 유지할 수 있는지를 '빅맥' 가격으로 환산합니다.</p>
+            <p>현재 5,500원인 빅맥 하나가 20년 뒤 10,000원에 육박한다면, 내 은퇴 목표 생활비도 월 300만 원에서 550만 원 이상으로 팽창해야 합니다. 파이어족 계산기는 초록색 '의무 목표 생활비선'을 하늘로 끌어올림으로써 화폐 가치의 참혹한 붕괴 현상을 그대로 시각화합니다.</p>
+
+            <h3>2. S&P 500 증시 10년 주기 사이클 분석형 시스템</h3>
+            <p>경제는 일직선으로 오르지 않습니다. 매년 안정적인 7%의 선형 복리 계산기를 돌렸다면 2008년의 뼈아픈 금융위기(Subprime)나 2022년의 약세장(Bear Market) 타격을 계산할 수 없습니다. </p>
+            <p>본 계산기 엔진은 과거 글로벌 증시의 전형적인 <strong>10년형 비즈니스 사이클(강세장 약 7년, 횡보 1년, 폭락 1년, 급반등 1년)</strong> 모델을 기초 데이터 배열로 적용했습니다. 우상향 속에서도 포트폴리오가 끊임없이 위아래로 흔들리는 스트레스 곡선을 보실 수 있습니다. 사용자가 입력하는 '평균 수익률' 값은 바로 이 10년 주기가 끝났을 때의 복리(CAGR) 결과치로 완벽하게 수렴되도록 보정 방정식이 적용되어 있습니다.</p>
+
+            <h3>3. "25배의 법칙"과 4% 룰 (The 4% Rule)</h3>
+            <p>어떻게 해야 은퇴를 맘 편히 선언할 자유의 날(FIRE Day)을 지정할 수 있을까요? 1998년 트리니티 대학의 연구(Trinity Study) 결과에 따르면, 주식과 채권 포트폴리오 비중을 건전하게 유지할 시 <strong>매년 내 보유 자산의 4% 이하만 인출해서 생활한다면 30년 이상 자산이 고갈되지 않을 확률이 극명히 높다</strong>고 조언했습니다. 이를 역산한 것이 '미래의 연 생활비의 25배' 규칙입니다. 1년에 4,000만 원의 가치 수준으로 소비를 방어하고자 한다면, 목표 자금 정답은 4,000만 원의 25배인 10억 원(미래 가치로는 그 이상)이 됩니다.</p>
+
+            <div class="ad-unit-wrapper">
+                <!-- Google AdSense Placeholder (In-article) -->
+            </div>
+
+            <h3>4. 개인 100% 브라우저 보안 및 프라이버시</h3>
+            <p>개인의 자산 데이터는 극도로 민감한 정보입니다. 본 파이어족 계산기는 사용자가 텍스트 란에 입력한 현재 보유 예금액, 주식, 부동산 시세 등을 <strong>어떠한 외부 서버나 외부 데이터베이스로 절대로 전송하거나 저장하지 않습니다.</strong> 엔진 코드는 오직 방문자의 모바일이나 PC 브라우저 내부 메모리(Client-side) 내에서만 실시간으로 즉시 연동되어 차트를 그려냅니다. 따라서 타인에게 데이터가 노출될 위험 없이 안심하고 수십 수백 편의 극한의 시뮬레이션을 만들어 볼 수 있습니다.</p>
+        </section>
     </main>
 
-    <!-- ApexCharts CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="engine.js"></script>
-    <script src="app.js"></script>
+    <!-- App Footer for AdSense Navigation Compliance -->
+    <footer class="app-footer">
+        <nav class="footer-nav">
+            <a href="about.html" title="파이어 계산기 소개">사이트 소개 (About)</a>
+            <a href="terms.html" title="플랫폼 이용약관">이용약관 (Terms)</a>
+            <a href="privacy.html" title="개인정보처리방침 (Google AdSense 약관 상세 포함)">개인정보처리방침 (Privacy Policy)</a>
+        </nav>
+        <div class="footer-copy">
+            &copy; 2026 파이어족 역산 시뮬레이터 Tool. All rights reserved.<br>
+            고수익 자본 시장 모델링 분석기 ─ 본 시뮬레이션 툴은 과거 데이터를 토대로 한 정보성 기구이며, 투자의 실제 수익률을 절대 보장하지 않습니다.
+        </div>
+    </footer>
 </body>
 </html>
