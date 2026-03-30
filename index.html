@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>파이어족 계산기 - 은퇴 시기 시뮬레이터 및 빅맥 지수 뷰어</title>
     <!-- SEO Meta Tags -->
-    <meta name="description" content="파이어족 계산기로 나의 조기 은퇴 시기를 정확히 시뮬레이션 해보세요. 인플레이션을 반영한 빅맥 화폐 가치, S&P 500 증시 하락장 사이클을 바탕으로 목표 은퇴 나이와 필요 자금을 객관적으로 산출해 드립니다.">
-    <meta name="keywords" content="파이어족, 파이어족 계산기, 조기 은퇴, 4% 규칙, 인플레이션, 빅맥지수, 은퇴 설계, FIRE movement, 재테크 시뮬레이터">
-    <meta property="og:title" content="현실 기반 파이어족 계산기 (FIRE Simulator)">
-    <meta property="og:description" content="단순 복리 계산을 넘어 시장의 폭락 변수와 물가 상승 충격까지 입체적으로 반영한 파이어족 조기 은퇴 계산기입니다.">
+    <meta name="description" content="파이어족 계산기로 나의 조기 은퇴 시기를 정확히 시뮬레이션 해보세요. 인플레이션을 반영한 빅맥 화폐 가치, S&P 500 증시 하락장 사이클, ISA 및 연금저축 절세 혜택과 배당 재투자 은퇴 가속 효과를 입체적으로 분석해 드립니다.">
+    <meta name="keywords" content="파이어족, 파이어족 계산기, 조기 은퇴, 4% 규칙, 인플레이션, 빅맥지수, 은퇴 설계, FIRE movement, 배당재투자, ISA, 연금저축, 절세 시뮬레이터">
+    <meta property="og:title" content="현실 기반 파이어족 계산기 (DRIP 절세 배당 반영)">
+    <meta property="og:description" content="단순 복리 계산을 넘어 시장의 폭락 변수와 물가 상승 충격, 절세 계좌의 눈덩이 효과까지 입체적으로 반영한 파이어족 조기 은퇴 계산기입니다.">
     
     <!-- Naver Search Advisor Verification -->
     <meta name="naver-site-verification" content="75b6e12b27226e151afcaa597082ec8c27f79b2d" />
@@ -27,7 +27,7 @@
         <div class="logo-wrapper">
             <a href="index.html" style="display:flex; align-items:center; text-decoration:none; color:inherit;">
                 <span class="material-symbols-outlined logo-icon cyan-neon">bolt</span>
-                <h1 class="cyan-neon-text">파이어족 계산기 <span style="font-size:12px;opacity:0.6;">v4.0 Cyber</span></h1>
+                <h1 class="cyan-neon-text">파이어족 계산기 <span style="font-size:12px;opacity:0.6;">v5.0 DRIP</span></h1>
             </a>
         </div>
         <div class="header-controls">
@@ -52,6 +52,12 @@
     </header>
 
     <main class="dashboard">
+        <!-- Acceleration Banner -->
+        <div id="accelerationBanner" class="accel-banner hidden">
+            <span class="material-symbols-outlined">rocket_launch</span>
+            <span id="accelText">축하합니다! 절세 및 재투자로 은퇴가 0.0년 빨라졌습니다!</span>
+        </div>
+
         <!-- Top Metrics Row -->
         <section class="metrics-panel">
             <div class="metric-card primary-neon">
@@ -137,6 +143,38 @@
                     </div>
                 </div>
 
+                <!-- DRIP & TAX Section -->
+                <div class="card cyber-card">
+                    <h2><span class="material-symbols-outlined">savings</span> 배당 및 절세 시스템 (DRIP & Tax)</h2>
+                    <p class="guide-text">배당금 재투자 스노우볼 및 ISA, 연금저축(과세이연)의 강력한 은퇴 가속 효과를 체험하세요.</p>
+                    <div class="form-group row-flex">
+                        <label>현재 예상 연 배당수익률 (%)</label>
+                        <input type="number" id="divYield" min="0" max="20" step="0.1" value="2.5">
+                    </div>
+                    <div class="form-group row-flex">
+                        <label>연 배당성장률 (%)</label>
+                        <input type="number" id="divGrowth" min="0" max="20" step="0.1" value="1.0">
+                    </div>
+                    <div class="form-group" style="margin-top:20px;">
+                        <label>절세 계좌 선택 (시뮬레이터 반영)</label>
+                        <div class="radio-group row-flex" style="gap:10px; margin-top:8px;">
+                            <label class="custom-radio"><input type="radio" name="accountType" value="general" checked> <span>일반 계좌 (15.4% 과세)</span></label>
+                            <label class="custom-radio"><input type="radio" name="accountType" value="isa"> <span class="cyan-neon-text">ISA 계좌 (200만 비과세/초과9.9%)</span></label>
+                            <label class="custom-radio"><input type="radio" name="accountType" value="pension"> <span class="magenta-neon-text">연금저축/IRP (100% 과세이연)</span></label>
+                        </div>
+                    </div>
+                    <hr class="divider">
+                    <div class="form-group" style="flex-direction:row; justify-content:space-between; align-items:center;">
+                        <label style="margin:0;">배당금 전액 자동 재투자 (DRIP)</label>
+                        <label class="switch-label">
+                            <div class="switch">
+                                <input type="checkbox" id="reinvestDiv" checked>
+                                <span class="slider round"></span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="card cyber-card">
                     <h2><span class="material-symbols-outlined">event</span> 인생 이벤트 (Life Events)</h2>
                     <p class="guide-text">일시적 목돈 지출(-)/수입(+)을 연도별 타임라인에 삽입하세요. (예: 대출상환, 학자금)</p>
@@ -148,15 +186,14 @@
                     <ul id="eventList" class="event-list"></ul>
                 </div>
                 
-                <!-- AdSense Auto Layout Margin -->
                 <div class="ad-unit-wrapper"></div>
 
                 <div class="card cyber-card">
                     <h2><span class="material-symbols-outlined">query_stats</span> 자본 시장 변수 (Market Variable)</h2>
                     <p class="guide-text">주식 시장은 과거 S&P500 등 10년 주기 사이클(Bull/Bear) 모델에 따라 증폭 계산됩니다.</p>
                     <div class="form-group row-flex">
-                        <label>주식/펀드 연장기 평균 기대수익률 (%)</label>
-                        <input type="number" id="stockReturn" min="-5" max="25" step="0.5" value="7.0">
+                        <label>주식/펀드 시장 평균 기대수익률 (배당제외 %)</label>
+                        <input type="number" id="stockReturn" min="-5" max="25" step="0.5" value="5.5">
                     </div>
                     <div class="form-group row-flex">
                         <label>잉여 자금의 주식 투자 비중 (%)</label>
@@ -172,50 +209,59 @@
 
             <!-- Right Panel : Visualizations -->
             <section class="visual-panel">
-                <div class="card cyber-card chart-container main-chart">
-                    <h2>총 자산 증식 곡선 (시장 10년 주기 시뮬레이션)</h2>
+                
+                <div class="dashboard-grid">
+                    <!-- Gauge and Bar chart in half widths if possible via CSS, or stacked -->
+                    <div class="card cyber-card chart-container sub-chart gauge-section">
+                        <h2>목표 생활비 배당 커버리지 게이지</h2>
+                        <div id="divGaugeChart" style="display:flex; justify-content:center;"></div>
+                    </div>
+                    
+                    <div class="card cyber-card chart-container sub-chart tax-section">
+                        <h2>은퇴 시점 막대한 세금 손실액 방어량</h2>
+                        <div id="taxBarChart"></div>
+                    </div>
+                </div>
+                
+                <div class="card cyber-card chart-container main-chart" style="margin-top:24px;">
+                    <h2>배당 투자의 마법: 은퇴 가속도 3선 궤적</h2>
+                    <p class="guide-text" style="margin-top:8px;">(회색: 배당금 0% 기준) vs (분홍: 배당금 단순 소비) vs (파랑: 배당금 무한 스노우볼 재투자)</p>
+                    <div id="accelChart"></div>
+                </div>
+
+                <div class="card cyber-card chart-container main-chart" style="margin-top:24px;">
+                    <h2>최종 시뮬레이션: 총 자산 증식 상세 스캐너</h2>
                     <div id="assetChart"></div>
                 </div>
 
-                <div class="card cyber-card chart-container sub-chart">
-                    <h2>월 예상 소득 및 물가 반영 목표 생활비 폭등 한계선</h2>
+                <div class="card cyber-card chart-container sub-chart" style="margin-top:24px;">
+                    <h2>월 예상 근로소득 및 물가폭등 파이어 한계선</h2>
                     <div id="incomeChart"></div>
                 </div>
             </section>
         </div>
 
-        <!-- SEO Rich Content Block for AdSense Approval (Thick Content) -->
         <section class="seo-content" id="article-fire-movement">
             <h2>경제적 자유(FIRE) 조기 은퇴를 위한 완벽 시뮬레이션 가이드</h2>
             
-            <p>파이어족(F.I.R.E. - Financial Independence, Retire Early) 계산기는 단순한 단리/복리 계산기를 넘어섭니다. 은퇴를 설계할 때 가장 무서운 적은 현실 세계의 조용한 암살자인 <strong>물가상승률(인플레이션)</strong>과, 평온하던 시장을 박살 내는 <strong>자본 시장의 급격한 변동성 주기(Bull & Bear Cycle)</strong>입니다. 본 시뮬레이터는 이러한 두 가지 리스크를 입체적으로 적용해 현실적이고 오차 없는 파이어 목표 도달 시점을 산출해 냅니다.</p>
+            <p>파이어족(F.I.R.E. - Financial Independence, Retire Early) 계산기는 단순한 단리/복리 계산기를 넘어섭니다. 은퇴를 설계할 때 가장 무서운 적은 현실 세계의 조용한 암살자인 <strong>물가상승률(인플레이션)</strong>과, 평온하던 시장을 박살 내는 <strong>자본 시장의 급격한 변동성 주기(Bull & Bear Cycle)</strong> 그리고 무자비하게 징수되는 배당소득세(15.4%)입니다.</p>
 
-            <div class="ad-unit-wrapper">
-                <!-- Google AdSense Placeholder (In-article) -->
-                <!-- <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-4790912864460441" data-ad-slot="auto" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script> -->
-            </div>
+            <div class="ad-unit-wrapper"></div>
             
             <h3>1. 인플레이션 방어와 빅맥 지수 (Big Mac Index)</h3>
             <p>화폐 가치는 시간이 지날수록 하락합니다. 현재 계좌에 있는 10억 원의 구매력(Purchasing Power)은 20년 뒤의 10억 원과 결코 같지 않습니다. 많은 은퇴 시뮬레이터들이 현재 기댓값의 이자로 계산하지만, 물가 상승이라는 벽에 부딪힙니다. 우리의 '체감 물가 계산기'는 근로 소득과 더불어 매년 물가가 상승할 때 나의 <strong>목표 생활비</strong>가 얼마나 팽창해야 원래의 삶을 유지할 수 있는지를 '빅맥' 가격으로 환산합니다.</p>
-            <p>현재 5,500원인 빅맥 하나가 20년 뒤 10,000원에 육박한다면, 내 은퇴 목표 생활비도 월 300만 원에서 550만 원 이상으로 팽창해야 합니다. 파이어족 계산기는 초록색 '의무 목표 생활비선'을 하늘로 끌어올림으로써 화폐 가치의 참혹한 붕괴 현상을 그대로 시각화합니다.</p>
 
-            <h3>2. S&P 500 증시 10년 주기 사이클 분석형 시스템</h3>
-            <p>경제는 일직선으로 오르지 않습니다. 매년 안정적인 7%의 선형 복리 계산기를 돌렸다면 2008년의 뼈아픈 금융위기(Subprime)나 2022년의 약세장(Bear Market) 타격을 계산할 수 없습니다. </p>
-            <p>본 계산기 엔진은 과거 글로벌 증시의 전형적인 <strong>10년형 비즈니스 사이클(강세장 약 7년, 횡보 1년, 폭락 1년, 급반등 1년)</strong> 모델을 기초 데이터 배열로 적용했습니다. 우상향 속에서도 포트폴리오가 끊임없이 위아래로 흔들리는 스트레스 곡선을 보실 수 있습니다. 사용자가 입력하는 '평균 수익률' 값은 바로 이 10년 주기가 끝났을 때의 복리(CAGR) 결과치로 완벽하게 수렴되도록 보정 방정식이 적용되어 있습니다.</p>
+            <h3>2. 절세 계좌의 위력 (ISA 및 연금저축/IRP)</h3>
+            <p>자본이 10억, 20억으로 불어나면 일반 계좌에서 강제로 떼어가는 15.4%의 세금은 엄청난 스노우볼의 제동 장치가 됩니다. 본 시뮬레이터는 한국형 비과세 만능 통장인 <strong>ISA(200만 원 한도 비과세 및 9.9% 저율 분리과세)</strong>와, 내지 않은 세금을 모조리 원금에 재투자하여 기하급수적으로 폭발시키는 <strong>연금저축/IRP(100% 과세이연 혜택)</strong>의 효과를 지원합니다. 상단의 가속도 배너에서 계좌 타입에 따라 은퇴 시기가 몇 년이나 수직 상승하는지 시각적인 충격을 체험해 보시기 바랍니다.</p>
 
-            <h3>3. "25배의 법칙"과 4% 룰 (The 4% Rule)</h3>
-            <p>어떻게 해야 은퇴를 맘 편히 선언할 자유의 날(FIRE Day)을 지정할 수 있을까요? 1998년 트리니티 대학의 연구(Trinity Study) 결과에 따르면, 주식과 채권 포트폴리오 비중을 건전하게 유지할 시 <strong>매년 내 보유 자산의 4% 이하만 인출해서 생활한다면 30년 이상 자산이 고갈되지 않을 확률이 극명히 높다</strong>고 조언했습니다. 이를 역산한 것이 '미래의 연 생활비의 25배' 규칙입니다. 1년에 4,000만 원의 가치 수준으로 소비를 방어하고자 한다면, 목표 자금 정답은 4,000만 원의 25배인 10억 원(미래 가치로는 그 이상)이 됩니다.</p>
-
-            <div class="ad-unit-wrapper">
-                <!-- Google AdSense Placeholder (In-article) -->
-            </div>
-
+            <h3>3. 배당 투자의 기적 원리 (배당 재투자 / DRIP)</h3>
+            <p>미국 S&P 500 주식 장기 투자의 진짜 수익률은 시세 차익(Capital Gain)이 아닌 끊임없이 쏟아지는 배당금의 강제 재투자(DRIP) 시스템에서 발생합니다. 본 서비스 우측 하단의 [가속도 3선 궤적] 차트를 보면, 배당금을 그냥 현금으로 소비한 곡선과, 다시 구르는 눈더미로 재투자한 곡선이 수십 년 뒤 얼마나 아찔한 격차를 부르는지 리얼 타임으로 확인할 수 있습니다.</p>
+            
             <h3>4. 개인 100% 브라우저 보안 및 프라이버시</h3>
-            <p>개인의 자산 데이터는 극도로 민감한 정보입니다. 본 파이어족 계산기는 사용자가 텍스트 란에 입력한 현재 보유 예금액, 주식, 부동산 시세 등을 <strong>어떠한 외부 서버나 외부 데이터베이스로 절대로 전송하거나 저장하지 않습니다.</strong> 엔진 코드는 오직 방문자의 모바일이나 PC 브라우저 내부 메모리(Client-side) 내에서만 실시간으로 즉시 연동되어 차트를 그려냅니다. 따라서 타인에게 데이터가 노출될 위험 없이 안심하고 수십 수백 편의 극한의 시뮬레이션을 만들어 볼 수 있습니다.</p>
+            <p>본 파이어족 계산기는 사용자가 텍스트 란에 입력한 현재 보유 자산 데이터를 <strong>외부 서버나 데이터베이스로 절대로 전송하거나 저장하지 않습니다.</strong> 엔진 코드는 오직 방문자의 모바일이나 PC 브라우저 내부 메모리(Client-side) 내에서만 실시간으로 즉시 연동되어 차트를 그려냅니다. 따라서 타인에게 노출될 위험 없이 안심하고 수십 수백 편의 극한의 시뮬레이션을 만들어 볼 수 있습니다.</p>
         </section>
     </main>
 
-    <!-- App Footer for AdSense Navigation Compliance -->
     <footer class="app-footer">
         <nav class="footer-nav">
             <a href="about.html" title="파이어 계산기 소개">사이트 소개 (About)</a>
@@ -227,5 +273,8 @@
             고수익 자본 시장 모델링 분석기 ─ 본 시뮬레이션 툴은 과거 데이터를 토대로 한 정보성 기구이며, 투자의 실제 수익률을 절대 보장하지 않습니다.
         </div>
     </footer>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="engine.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

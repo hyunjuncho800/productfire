@@ -1,8 +1,9 @@
 /**
- * Intelligent Variable FIRE Engine v4 (Cybernetic Edition)
+ * Intelligent Variable FIRE Engine v5 (Tax & Dividend Reinvestment)
  * - Inflation & Big Mac Future Price Math
  * - Target Age Gap analysis
  * - Business Cycle array execution
+ * - Dividend Reinvestment & Tax Accelerated Account Logic
  */
 
 const BUSINESS_CYCLE_SHAPE = [ 1.15, 1.15, 1.10, 1.12, 1.18, 1.08, 1.05, 0.98, 0.65, 1.35 ];
@@ -30,7 +31,9 @@ function runSimulation(inputs) {
         age, targetAge, salary, inflationRate, expense, 
         cash, stock, realestate,
         stockReturn, realestateReturn, stockRatio,
-        lifeEvents, isStressTest
+        lifeEvents, isStressTest,
+        // Dividend & Tax Simulation
+        divYield, divGrowth, accountType, reinvestDiv
     } = inputs;
 
     const cycleReturns = getAdjusted10YearCycle(stockReturn);
@@ -39,17 +42,22 @@ function runSimulation(inputs) {
     let totalStock = stock;
     let totalRealEstate = realestate;
 
+    let isaTaxFreeRemaining = 200; // 200만 원 Lifetime base for simplified model
+    let cumulativeTaxPaid = 0;
+    let currentDivYield = (divYield || 0) / 100;
+    let currentMonthlyDividendCoverage = 0; 
+    let currentYearTotalDividend = 0;
+
     const MAX_AGE = 100;
     const monthlyRealReturn = realestateReturn / 100 / 12;
     const trueMonthlyInflation = Math.pow(1 + inflationRate/100, 1/12) - 1; 
     
     const history = [];
-    let fireAge = null;
+    let fireAgeExact = null;
     let fireAsset = null;
     let targetAssetAtFire = null;
     let isBroke = false;
 
-    // To measure the Gap at Target Age
     let assetAtTargetAge = null;
     let requiredAssetAtTargetAge = null;
 
@@ -59,14 +67,10 @@ function runSimulation(inputs) {
         let yearFloor = Math.floor(currentMonthAge);
         let yearIndex = Math.floor(m / 12);
         
-        // Stock returns with 3yr stress drop
         let currentYearReturn = cycleReturns[yearIndex % 10]; 
-        if (isStressTest && yearIndex < 3) {
-            currentYearReturn = -0.10;
-        }
+        if (isStressTest && yearIndex < 3) currentYearReturn = -0.10;
         let currentMonthlyStockReturn = Math.pow(1 + currentYearReturn, 1/12) - 1;
 
-        // Salary and Expense continuous inflation
         let currentNominalSalary = salary * Math.pow(1 + trueMonthlyInflation, m);
         let currentNominalExpense = expense * Math.pow(1 + trueMonthlyInflation, m);
         
@@ -87,7 +91,6 @@ function runSimulation(inputs) {
             totalCash = 0;
         }
         
-        // Custom Life Events Processing
         if (isExactYear) {
             let evt = lifeEvents.find(e => e.age === yearFloor);
             if (evt) {
@@ -99,6 +102,40 @@ function runSimulation(inputs) {
                     if (totalCash < 0) { totalStock += totalCash; totalCash = 0; }
                     if (totalStock < 0) { totalRealEstate += totalStock; totalStock = 0; }
                 }
+            }
+
+            // Dividend & Tax execution at the start of the year (or end of previous)
+            if (m > 0 && currentDivYield > 0) {
+                let yearlyDividend = totalStock * currentDivYield; // Calculated based on current stock principal
+                currentYearTotalDividend = yearlyDividend;
+                currentMonthlyDividendCoverage = (yearlyDividend / 12) / currentNominalExpense; // Coverage Ratio
+
+                let taxToPay = 0;
+                
+                if (accountType === 'general') {
+                    // 15.4% flat
+                    taxToPay = yearlyDividend * 0.154;
+                } else if (accountType === 'isa') {
+                    // Up to 200만 0%, excess 9.9%
+                    let taxFreeApplied = Math.min(yearlyDividend, isaTaxFreeRemaining);
+                    isaTaxFreeRemaining -= taxFreeApplied;
+                    taxToPay = (yearlyDividend - taxFreeApplied) * 0.099;
+                } else if (accountType === 'pension') {
+                    // 0% Tax Deferred
+                    taxToPay = 0; 
+                }
+
+                cumulativeTaxPaid += taxToPay;
+                let netDividend = yearlyDividend - taxToPay;
+
+                if (reinvestDiv) {
+                    totalStock += netDividend;
+                } else {
+                    totalCash += netDividend;
+                }
+                
+                // Dividend Growth applies to Yield
+                currentDivYield = currentDivYield * (1 + ((divGrowth || 0) / 100));
             }
         }
         
@@ -115,10 +152,8 @@ function runSimulation(inputs) {
         let currentTotalAsset = totalCash + totalStock + totalRealEstate;
         if(currentTotalAsset < 0) currentTotalAsset = 0;
 
-        // 4% Rule -> Need 25 times the annual inflated expense
         let currentTargetAsset = currentNominalExpense * 12 * 25;
 
-        // Yearly History Snapshot
         if (isExactYear) {
             history.push({
                 age: yearFloor,
@@ -128,32 +163,39 @@ function runSimulation(inputs) {
                 total: Math.round(currentTotalAsset),
                 income: Math.round(currentNominalSalary),
                 expense: Math.round(currentNominalExpense),
-                target: Math.round(currentTargetAsset)
+                target: Math.round(currentTargetAsset),
+                cumulativeTax: Math.round(cumulativeTaxPaid),
+                divCoverage: currentMonthlyDividendCoverage * 100 // To percentage
             });
             
-            // Check Target Age Snapshot for Gap analysis
             if (yearFloor === targetAge) {
                 assetAtTargetAge = currentTotalAsset;
                 requiredAssetAtTargetAge = currentTargetAsset;
             }
-            
-            // Check Pure FIRE Attainment
-            if (!fireAge && currentTotalAsset >= currentTargetAsset) {
-                fireAge = yearFloor;
-                fireAsset = Math.round(currentTotalAsset);
-                targetAssetAtFire = Math.round(currentTargetAsset);
-            }
         }
+
+        // Finer-grained fire Age (month precision)
+        if (!fireAgeExact && currentTotalAsset >= currentTargetAsset && currentTargetAsset > 0) {
+            fireAgeExact = currentMonthAge;
+            fireAsset = Math.round(currentTotalAsset);
+            targetAssetAtFire = Math.round(currentTargetAsset);
+        }
+
         if (isBroke) break;
     }
 
+    // fallback mapping if it never reached
+    let fireAge = fireAgeExact ? Math.ceil(fireAgeExact * 10) / 10 : null;
+
     return { 
-        fireAge, 
+        fireAgeExact, 
+        fireAge,
         targetAssetAtFire: targetAssetAtFire || 0,
         fireAsset, 
         history, 
         isBroke,
         assetAtTargetAge,
-        requiredAssetAtTargetAge
+        requiredAssetAtTargetAge,
+        cumulativeTaxPaid
     };
 }

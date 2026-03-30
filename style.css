@@ -147,6 +147,21 @@ input[type="number"] {
 }
 input[type="number"]:focus { border-color: var(--cyan); background: var(--bg-card); }
 
+/* Custom Radio & Banner */
+.custom-radio { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--text-med); }
+.custom-radio input[type="radio"] { accent-color: var(--cyan); width: 16px; height: 16px; cursor: pointer; }
+.accel-banner {
+    background: linear-gradient(135deg, var(--bg-card), rgba(56, 189, 248, 0.1));
+    border-left: 4px solid var(--cyan); color: var(--text-high);
+    padding: 16px 24px; font-size: 17px; font-weight: 700;
+    border-radius: var(--radius-m); margin-bottom: 24px;
+    display: flex; align-items: center; gap: 12px;
+}
+.accel-banner .material-symbols-outlined { color: var(--success); font-size: 28px; }
+.hidden { display: none !important; }
+.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+.dashboard-grid .card { margin-bottom: 0; }
+
 /* Events */
 .event-adder { display: flex; gap: 8px; margin-bottom: 16px; }
 .event-adder input { flex: 1; padding: 10px 14px; min-width: 0; }
