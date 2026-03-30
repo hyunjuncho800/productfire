@@ -5,8 +5,6 @@
 let assetChartInst = null;
 let incomeChartInst = null;
 let accelChartInst = null;
-let taxBarChartInst = null;
-let divGaugeChartInst = null;
 
 const formatKrw = (val) => new Intl.NumberFormat('ko-KR').format(val);
 const formatKrwSmall = (val) => {
@@ -185,17 +183,6 @@ function triggerSimulation() {
 
     renderMainCharts(userResult.history, stressResult?.history, userResult.fireAge, baseInputs.targetAge);
     renderAccelChart(resNoDiv.history, resDivNoRe.history, resDivRe.history);
-    
-    // V6 Tax Bar includes NHI & Comprehensive Tax
-    renderTaxBar(resTaxGeneral.cumulativeTaxPaid, userResult.cumulativeTaxPaid, userResult.cumulativeNhiPaid, baseInputs.accountType);
-    
-    let finalGaugeVal = 0;
-    if (userResult.history && userResult.history.length > 0) {
-        let targetIdx = userResult.history.findIndex(h => h.age === baseInputs.targetAge);
-        if (targetIdx === -1) targetIdx = userResult.history.length - 1; 
-        finalGaugeVal = userResult.history[targetIdx].divCoverage;
-    }
-    renderGaugeChart(finalGaugeVal);
 }
 
 function updateBanner(fireAgeNoDiv, fireAgeReinvest) {
@@ -366,59 +353,5 @@ function renderAccelChart(hNoDiv, hNoRe, hRe) {
     }
 }
 
-// Chart 4: Tax Bar Chart (Includes NHI)
-function renderTaxBar(taxGen, taxCurrent, currentNhi, accType) {
-    let labelAcc = accType === 'isa' ? '방어 계좌 적용' : (accType === 'pension' ? '연금저축/IRP 적용' : '일반 계좌 (세금폭탄)');
-    
-    let series = [
-        { name: "누적 세금 (종합과세 포함)", data: [taxGen, taxCurrent] },
-        { name: "은퇴 후 누적 건보료 폭탄", data: [currentNhi, currentNhi] }
-    ];
-    let categories = ["일반 계좌 이용 시", labelAcc];
-    
-    let colors = currentTheme === 'dark' ? ['#F28B82', '#FCC936'] : ['#D93025', '#F29900'];
-
-    if(taxBarChartInst) {
-        taxBarChartInst.updateOptions({ theme: { mode: currentTheme }, xaxis: { categories }, colors });
-        taxBarChartInst.updateSeries(series);
-    } else {
-        taxBarChartInst = new ApexCharts(document.querySelector("#taxBarChart"), {
-            series: series, theme: { mode: currentTheme },
-            chart: { type: 'bar', height: 280, stacked: true, fontFamily: 'Google Sans', toolbar: { show: false }, background: 'transparent', animations: { enabled: false } },
-            colors: colors,
-            plotOptions: { bar: { borderRadius: 4, horizontal: true } },
-            dataLabels: { enabled: true, formatter: val => formatKrwSmall(val) },
-            xaxis: { categories: categories, labels: { formatter: formatKrwSmall } },
-            legend: { position: 'bottom' }
-        });
-        taxBarChartInst.render();
-    }
-}
-
-// Chart 5: Dividend Coverage Gauge
-function renderGaugeChart(coverageRatio) {
-    let val = Math.min(coverageRatio || 0, 100).toFixed(1);
-    let color = currentTheme === 'dark' ? '#8AB4F8' : '#1A73E8';
-    if(val >= 100) color = currentTheme === 'dark' ? '#81C995' : '#188038';
-
-    if(divGaugeChartInst) {
-        divGaugeChartInst.updateOptions({ theme: { mode: currentTheme }, colors: [color] });
-        divGaugeChartInst.updateSeries([val]);
-    } else {
-        divGaugeChartInst = new ApexCharts(document.querySelector("#divGaugeChart"), {
-            series: [val], theme: { mode: currentTheme },
-            chart: { type: 'radialBar', height: 300, fontFamily: 'Google Sans', background: 'transparent', animations: { enabled: false } },
-            colors: [color],
-            plotOptions: {
-                radialBar: {
-                    hollow: { size: '65%' },
-                    dataLabels: { name: { show: true, fontSize: '14px', color: 'var(--md-sys-color-on-surface-variant)', offsetY: -10 }, value: { show: true, fontSize: '36px', fontWeight: 700, color: 'var(--md-sys-color-on-surface)', formatter: val => val + "%" } }
-                }
-            },
-            labels: ['생활비 커버리지 달성률']
-        });
-        divGaugeChartInst.render();
-    }
-}
 
 document.addEventListener('DOMContentLoaded', init);
