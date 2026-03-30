@@ -307,46 +307,6 @@ function renderMainCharts(history, stressHistory, fireAge, targetAge) {
     if(!history || history.length === 0) return;
     
     const xCategories = history.map(h => h.age + '세');
-    const assetSeries = [
-        { name: "일반 주식", data: history.map(h => h.stock) },
-        { name: "배당 주식", data: history.map(h => h.divStock || 0) }
-    ];
-    
-    let annotations = { xaxis: [] };
-    if (targetAge) annotations.xaxis.push({ x: targetAge + '세', strokeDashArray: 5, borderColor: '#1d4ed8', label: { style: { color: '#fff', background: '#1d4ed8' }, text: '희망 은퇴' } });
-    if (fireAge) annotations.xaxis.push({ x: fireAge + '세', strokeDashArray: 0, borderColor: '#10b981', label: { style: { color: '#fff', background: '#10b981' }, text: '목표 달성' } });
-
-    let colors = currentTheme === 'dark' ? ['#3b82f6', '#10b981'] : ['#1d4ed8', '#10b981'];
-    if (stressHistory) {
-        assetSeries.push({ name: "위기 자산", type: 'line', data: stressHistory.map(h => h.total) });
-        colors.push(currentTheme === 'dark' ? '#fca5a5' : '#ef4444');
-    }
-
-    const chartEl = document.querySelector("#assetChart");
-    if (!chartEl) return;
-
-    if(assetChartInst) {
-        assetChartInst.updateOptions({ theme: { mode: currentTheme }, annotations, colors });
-        assetChartInst.updateSeries(assetSeries);
-    } else {
-        assetChartInst = new ApexCharts(chartEl, {
-            series: assetSeries, theme: { mode: currentTheme },
-            chart: { background: 'transparent', type: 'area', width: '100%', height: 420, fontFamily: 'Noto Sans KR', toolbar: { show: false } },
-            colors: colors, stroke: { width: [3, 3, 4], curve: 'smooth', dashArray: [0, 0, 5] },
-            xaxis: { categories: xCategories, tickAmount: 10 }, yaxis: { labels: { formatter: formatKrwSmall } },
-            tooltip: { y: { formatter: formatKrwSmall } },
-            legend: { position: 'top', fontWeight: 600 },
-            responsive: [{
-                breakpoint: 600,
-                options: {
-                    xaxis: { tickAmount: 5 },
-                    chart: { height: 350 },
-                    legend: { position: 'bottom' }
-                }
-            }]
-        });
-        assetChartInst.render();
-    }
 
     const incomeEl = document.querySelector("#incomeChart");
     if (incomeEl) {
@@ -380,11 +340,10 @@ function renderAccelChart(hNoDiv, hNoRe, hRe) {
     if (!chartEl || !hNoDiv) return;
     
     const series = [
-        { name: "배당 X", data: hNoDiv.map(h => h.total) },
         { name: "배당 소비", data: hNoRe.map(h => h.total) },
         { name: "배당 재투자", data: hRe.map(h => h.total) }
     ];
-    let colors = currentTheme === 'dark' ? ['#94a3b8', '#fca5a5', '#3b82f6'] : ['#64748b', '#ef4444', '#1d4ed8'];
+    let colors = currentTheme === 'dark' ? ['#fca5a5', '#3b82f6'] : ['#ef4444', '#1d4ed8'];
 
     if(accelChartInst) {
         accelChartInst.updateOptions({ theme: { mode: currentTheme }, colors });
@@ -393,7 +352,7 @@ function renderAccelChart(hNoDiv, hNoRe, hRe) {
         accelChartInst = new ApexCharts(chartEl, {
             series: series, theme: { mode: currentTheme },
             chart: { type: 'line', width: '100%', height: 350, fontFamily: 'Noto Sans KR', toolbar: { show: false }, background: 'transparent' },
-            colors: colors, stroke: { width: [3, 3, 5], curve: 'smooth' },
+            colors: colors, stroke: { width: [3, 5], curve: 'smooth' },
             xaxis: { categories: hNoDiv.map(h => h.age + '세'), tickAmount: 10 },
             yaxis: { labels: { formatter: formatKrwSmall } },
             tooltip: { y: { formatter: formatKrwSmall } },
